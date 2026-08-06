@@ -92,9 +92,16 @@
                                     <action selector="deletePressed:" destination="rdY-Cl-aXB" eventType="touchUpInside" id="bwk-4Z-opb"/>
                                 </connections>
                             </button>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="views: 0" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="YJa-Kr-SvZ">
+                                <rect key="frame" x="88" y="630" width="63" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="UPu-bz-175"/>
-                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <color key="backgroundColor" systemColor="systemGray6Color"/>
                     </view>
                     <navigationItem key="navigationItem" id="1YZ-iM-Npw"/>
                     <connections>
@@ -102,6 +109,7 @@
                         <outlet property="nameLabel" destination="MkE-48-de2" id="Jkk-er-ABV"/>
                         <outlet property="notesTextView" destination="YPf-ju-DLg" id="AGO-0O-EbH"/>
                         <outlet property="ratingLabel" destination="w5Y-B9-iA4" id="hjB-Zv-Gvc"/>
+                        <outlet property="viewsLabel" destination="YJa-Kr-SvZ" id="Atq-65-Unv"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="1Ps-bb-GPx" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
@@ -134,7 +142,7 @@
                     <navigationItem key="navigationItem" title="Favorite Cafes" id="9sF-FU-UZn">
                         <barButtonItem key="rightBarButtonItem" systemItem="add" id="che-Fu-S2O">
                             <connections>
-                                <segue destination="udC-cb-XTi" kind="show" id="kYh-0v-I6H"/>
+                                <segue destination="udC-cb-XTi" kind="show" identifier="showAddCafe" id="kYh-0v-I6H"/>
                             </connections>
                         </barButtonItem>
                     </navigationItem>
@@ -155,7 +163,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Cafe Name" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="UXo-O4-LWB">
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Cafe Name" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="UXo-O4-LWB">
                                 <rect key="frame" x="30" y="123" width="85" height="21"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <nil key="textColor"/>
@@ -212,7 +220,8 @@
                             </button>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="Q9g-BU-jW8"/>
-                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <color key="backgroundColor" systemColor="systemGray6Color"/>
+                        <color key="tintColor" systemColor="systemBrownColor"/>
                         <constraints>
                             <constraint firstItem="Q9g-BU-jW8" firstAttribute="bottom" secondItem="6FD-AB-MM7" secondAttribute="bottom" constant="50" id="0Ay-mJ-mrR"/>
                             <constraint firstItem="d6E-nF-dy2" firstAttribute="top" secondItem="840-Gt-SEs" secondAttribute="bottom" constant="20" id="3GI-MU-t0a"/>
@@ -276,6 +285,12 @@
         </systemColor>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+        <systemColor name="systemBrownColor">
+            <color red="0.63529411759999999" green="0.51764705879999995" blue="0.36862745099999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </systemColor>
+        <systemColor name="systemGray6Color">
+            <color red="0.94901960780000005" green="0.94901960780000005" blue="0.96862745100000003" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
     </resources>
 </document>

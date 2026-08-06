@@ -3,83 +3,160 @@
 //  CafeFinder
 //
 //  Created by Student14 on 04/08/2026.
-//
 import UIKit
 
 class AddCafeViewController: UIViewController {
 
+    // MARK: - Outlets
+
     @IBOutlet weak var nameTextField: UITextField!
+    @IBOutlet weak var cityTextField: UITextField!
     @IBOutlet weak var ratingLabel: UILabel!
     @IBOutlet weak var notesTextView: UITextView!
-    @IBOutlet weak var cityTextField: UITextField!
-    
     @IBOutlet weak var ratingStepper: UIStepper!
-
-    
     @IBOutlet weak var saveButton: UIButton!
+
+    // MARK: - Properties
+
+    var onSave: ((Cafe) -> Void)?
+    var cafeToEdit: Cafe?
+
+    // MARK: - Lifecycle
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        configureStepper()
+        configureAppearance()
+        configureScreen()
+    }
+
+    // MARK: - Screen Configuration
+
+    private func configureStepper() {
+        ratingStepper.minimumValue = 1
+        ratingStepper.maximumValue = 5
+        ratingStepper.stepValue = 1
+        ratingStepper.value = 1
+
+        updateRatingLabel(rating: 1)
+    }
+
+    private func configureScreen() {
+        if let cafe = cafeToEdit {
+            configureEditMode(with: cafe)
+        } else {
+            configureAddMode()
+        }
+    }
+
+    private func configureAddMode() {
+        title = "הוספת בית קפה"
+        saveButton.setTitle("שמירה", for: .normal)
+    }
+
+    private func configureEditMode(with cafe: Cafe) {
+        title = "עריכת בית קפה"
+        saveButton.setTitle("עדכון", for: .normal)
+
+        nameTextField.text = cafe.name
+        cityTextField.text = cafe.city
+        notesTextView.text = cafe.notes
+
+        ratingStepper.value = Double(cafe.rating)
+        updateRatingLabel(rating: cafe.rating)
+    }
+
+    // MARK: - Rating
+
     @IBAction func stepperChanged(_ sender: UIStepper) {
-
         let rating = Int(sender.value)
+        updateRatingLabel(rating: rating)
+    }
 
+    private func updateRatingLabel(rating: Int) {
         var stars = ""
 
-        for i in 1...5 {
-            if i <= rating {
-                stars += "★"
-            } else {
-                stars += "☆"
-            }
+        for index in 1...5 {
+            stars += index <= rating ? "★" : "☆"
         }
 
         ratingLabel.text = stars
     }
-    var onSave: ((Cafe) -> Void)?
-    var cafeToEdit: Cafe?
-    var isEditingCafe = false
+
+    // MARK: - Save
+
     @IBAction func savePressed(_ sender: UIButton) {
-        
-        print("save p")
+        let name = nameTextField.text?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+
+        let city = cityTextField.text?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+
+        let notes = notesTextView.text?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+
+        guard !name.isEmpty else {
+            showAlert(message: "יש להזין שם של בית קפה")
+            return
+        }
+
+        guard !city.isEmpty else {
+            showAlert(message: "יש להזין עיר")
+            return
+        }
 
         let cafe = Cafe(
-            name: nameTextField.text ?? "",
-            city: cityTextField.text ?? "",
+            id: cafeToEdit?.id ?? UUID().uuidString,
+            name: name,
+            city: city,
             rating: Int(ratingStepper.value),
-            notes: notesTextView.text
+            notes: notes,
+            createdAt: cafeToEdit?.createdAt ?? Date()
         )
 
         onSave?(cafe)
-        print("onSave call")
 
         navigationController?.popViewController(animated: true)
     }
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
-        ratingStepper.minimumValue = 1
-        ratingStepper.maximumValue = 5
-        ratingStepper.value = 1
 
-        ratingLabel.text = "★☆☆☆☆"
-        
-        
-        if let cafe = cafeToEdit {
+    // MARK: - Appearance
 
-            isEditingCafe = true
-            title = "Edit Cafe"
+    private func configureAppearance() {
+        view.backgroundColor = .systemBackground
 
-            nameTextField.text = cafe.name
-            cityTextField.text = cafe.city
-            notesTextView.text = cafe.notes
+        nameTextField.backgroundColor = .secondarySystemBackground
+        cityTextField.backgroundColor = .secondarySystemBackground
+        notesTextView.backgroundColor = .secondarySystemBackground
 
-            ratingStepper.value = Double(cafe.rating)
+        nameTextField.textColor = .label
+        cityTextField.textColor = .label
+        notesTextView.textColor = .label
 
-            var stars = ""
-            for i in 1...5 {
-                stars += i <= cafe.rating ? "⭐️" : "☆"
-            }
+        nameTextField.layer.cornerRadius = 10
+        cityTextField.layer.cornerRadius = 10
+        notesTextView.layer.cornerRadius = 10
+        saveButton.layer.cornerRadius = 12
 
-            ratingLabel.text = stars
-        }    }
-    
+        ratingLabel.textColor = .systemOrange
+    }
 
+    // MARK: - Alert
+
+    private func showAlert(message: String) {
+        let alert = UIAlertController(
+            title: "שימי לב",
+            message: message,
+            preferredStyle: .alert
+        )
+
+        alert.addAction(
+            UIAlertAction(
+                title: "אישור",
+                style: .default
+            )
+        )
+
+        present(alert, animated: true)
+    }
 }
