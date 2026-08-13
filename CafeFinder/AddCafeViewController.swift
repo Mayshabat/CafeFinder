@@ -3,6 +3,8 @@
 //  CafeFinder
 //
 //  Created by Student14 on 04/08/2026.
+//
+
 import UIKit
 
 class AddCafeViewController: UIViewController {
@@ -11,10 +13,17 @@ class AddCafeViewController: UIViewController {
 
     @IBOutlet weak var nameTextField: UITextField!
     @IBOutlet weak var cityTextField: UITextField!
+    @IBOutlet weak var addressTextField: UITextField!
+
     @IBOutlet weak var ratingLabel: UILabel!
     @IBOutlet weak var notesTextView: UITextView!
     @IBOutlet weak var ratingStepper: UIStepper!
     @IBOutlet weak var saveButton: UIButton!
+
+    @IBOutlet weak var cafeNameLabel: UILabel!
+    @IBOutlet weak var cityLabel: UILabel!
+    @IBOutlet weak var addressLabel: UILabel!
+    @IBOutlet weak var notesLabel: UILabel!
 
     // MARK: - Properties
 
@@ -29,6 +38,15 @@ class AddCafeViewController: UIViewController {
         configureStepper()
         configureAppearance()
         configureScreen()
+
+        view.backgroundColor = CafeAppTheme.Colors.background
+
+        CafeAppTheme.styleTextField(nameTextField)
+        CafeAppTheme.styleTextField(cityTextField)
+        CafeAppTheme.styleTextField(addressTextField)
+
+        CafeAppTheme.styleTextView(notesTextView)
+        CafeAppTheme.stylePrimaryButton(saveButton)
     }
 
     // MARK: - Screen Configuration
@@ -51,16 +69,15 @@ class AddCafeViewController: UIViewController {
     }
 
     private func configureAddMode() {
-        title = "הוספת בית קפה"
-        saveButton.setTitle("שמירה", for: .normal)
+        saveButton.setTitle("Save Cafe", for: .normal)
     }
 
     private func configureEditMode(with cafe: Cafe) {
-        title = "עריכת בית קפה"
-        saveButton.setTitle("עדכון", for: .normal)
+        saveButton.setTitle("Update Cafe", for: .normal)
 
         nameTextField.text = cafe.name
         cityTextField.text = cafe.city
+        addressTextField.text = cafe.address
         notesTextView.text = cafe.notes
 
         ratingStepper.value = Double(cafe.rating)
@@ -87,22 +104,31 @@ class AddCafeViewController: UIViewController {
     // MARK: - Save
 
     @IBAction func savePressed(_ sender: UIButton) {
+
         let name = nameTextField.text?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
 
         let city = cityTextField.text?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
 
+        let address = addressTextField.text?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+
         let notes = notesTextView.text?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
 
         guard !name.isEmpty else {
-            showAlert(message: "יש להזין שם של בית קפה")
+            showAlert(message: "Please enter a cafe name")
             return
         }
 
         guard !city.isEmpty else {
-            showAlert(message: "יש להזין עיר")
+            showAlert(message: "Please enter a city")
+            return
+        }
+
+        guard !address.isEmpty else {
+            showAlert(message: "Please enter an address")
             return
         }
 
@@ -112,47 +138,95 @@ class AddCafeViewController: UIViewController {
             city: city,
             rating: Int(ratingStepper.value),
             notes: notes,
-            createdAt: cafeToEdit?.createdAt ?? Date()
+            createdAt: cafeToEdit?.createdAt ?? Date(),
+            address: address
         )
 
         onSave?(cafe)
 
-        navigationController?.popViewController(animated: true)
+        navigationController?
+            .popViewController(animated: true)
     }
 
     // MARK: - Appearance
 
     private func configureAppearance() {
-        view.backgroundColor = .systemBackground
 
+        // Backgrounds
         nameTextField.backgroundColor = .secondarySystemBackground
         cityTextField.backgroundColor = .secondarySystemBackground
+        addressTextField.backgroundColor = .secondarySystemBackground
         notesTextView.backgroundColor = .secondarySystemBackground
 
-        nameTextField.textColor = .label
-        cityTextField.textColor = .label
-        notesTextView.textColor = .label
+        // Text colors
+        nameTextField.textColor = CafeAppTheme.Colors.darkBrown
+        cityTextField.textColor = CafeAppTheme.Colors.darkBrown
+        addressTextField.textColor = CafeAppTheme.Colors.darkBrown
+        notesTextView.textColor = CafeAppTheme.Colors.darkBrown
 
+        // Labels
+        cafeNameLabel.textColor = CafeAppTheme.Colors.darkBrown
+        cityLabel.textColor = CafeAppTheme.Colors.darkBrown
+        addressLabel.textColor = CafeAppTheme.Colors.darkBrown
+        notesLabel.textColor = CafeAppTheme.Colors.darkBrown
+
+        // Placeholders
+        nameTextField.attributedPlaceholder = NSAttributedString(
+            string: "Enter Name",
+            attributes: [
+                .foregroundColor: CafeAppTheme.Colors.secondaryText
+            ]
+        )
+
+        cityTextField.attributedPlaceholder = NSAttributedString(
+            string: "Enter City",
+            attributes: [
+                .foregroundColor: CafeAppTheme.Colors.secondaryText
+            ]
+        )
+
+        addressTextField.attributedPlaceholder = NSAttributedString(
+            string: "Enter full address",
+            attributes: [
+                .foregroundColor: CafeAppTheme.Colors.secondaryText
+            ]
+        )
+
+        // Corners
         nameTextField.layer.cornerRadius = 10
         cityTextField.layer.cornerRadius = 10
+        addressTextField.layer.cornerRadius = 10
         notesTextView.layer.cornerRadius = 10
         saveButton.layer.cornerRadius = 12
 
-        ratingLabel.textColor = .systemOrange
+        // Rating
+        ratingLabel.textColor = CafeAppTheme.Colors.star
+
+        // Navigation
+        let navAppearance = UINavigationBarAppearance()
+        navAppearance.configureWithTransparentBackground()
+
+        navAppearance.titleTextAttributes = [
+            .foregroundColor: CafeAppTheme.Colors.darkBrown
+        ]
+
+        navigationController?.navigationBar.standardAppearance = navAppearance
+        navigationController?.navigationBar.scrollEdgeAppearance = navAppearance
     }
 
     // MARK: - Alert
 
     private func showAlert(message: String) {
+
         let alert = UIAlertController(
-            title: "שימי לב",
+            title: "Missing Information",
             message: message,
             preferredStyle: .alert
         )
 
         alert.addAction(
             UIAlertAction(
-                title: "אישור",
+                title: "OK",
                 style: .default
             )
         )

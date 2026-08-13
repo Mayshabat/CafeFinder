@@ -2,11 +2,11 @@
 //  CafeDetailsViewController.swift
 //  CafeFinder
 //
-//  Created by Student14 on 04/08/2026.
-//
 
 import UIKit
 import FirebaseDatabase
+import MapKit
+import CoreLocation
 
 class CafeDetailsViewController: UIViewController {
 
@@ -17,6 +17,7 @@ class CafeDetailsViewController: UIViewController {
     @IBOutlet weak var ratingLabel: UILabel!
     @IBOutlet weak var notesTextView: UITextView!
     @IBOutlet weak var viewsLabel: UILabel!
+    @IBOutlet weak var mapView: MKMapView!
 
     // MARK: - Properties
 
@@ -34,6 +35,7 @@ class CafeDetailsViewController: UIViewController {
 
         configureAppearance()
         displayCafeDetails()
+        showCafeLocation()
         observeViews()
     }
 
@@ -41,19 +43,18 @@ class CafeDetailsViewController: UIViewController {
 
     private func displayCafeDetails() {
         guard let cafe = cafe else {
-            showError("לא נמצאו פרטי בית הקפה")
+            showError("Cafe details could not be found")
             return
         }
-
-        title = cafe.name
 
         nameLabel.text = cafe.name
         cityLabel.text = cafe.city
         ratingLabel.text = createStars(for: cafe.rating)
-        notesTextView.text = cafe.notes
 
         if cafe.notes.isEmpty {
-            notesTextView.text = "לא נוספו הערות"
+            notesTextView.text = "No notes added"
+        } else {
+            notesTextView.text = cafe.notes
         }
     }
 
@@ -77,8 +78,9 @@ class CafeDetailsViewController: UIViewController {
         viewsHandle = CafeRealtimeService.shared.observeViews(
             for: cafe.id
         ) { [weak self] views in
+
             DispatchQueue.main.async {
-                self?.viewsLabel.text = "צפיות: \(views)"
+                self?.viewsLabel.text = "Views: \(views)"
             }
         }
     }
@@ -93,8 +95,11 @@ class CafeDetailsViewController: UIViewController {
             return
         }
 
-        if let addVC = segue.destination as? AddCafeViewController {
+        if let addVC =
+            segue.destination as? AddCafeViewController {
+
             configureEditScreen(addVC)
+
         } else if let navigationController =
                     segue.destination as? UINavigationController,
                   let addVC =
@@ -114,7 +119,12 @@ class CafeDetailsViewController: UIViewController {
             guard let self = self else { return }
 
             self.cafe = editedCafe
+
             self.displayCafeDetails()
+
+            // Refresh the map after editing the address
+            self.showCafeLocation()
+
             self.onEdit?(editedCafe)
         }
     }
@@ -122,24 +132,26 @@ class CafeDetailsViewController: UIViewController {
     // MARK: - Delete
 
     @IBAction func deletePressed(_ sender: UIButton) {
+
         let alert = UIAlertController(
-            title: "מחיקת בית קפה",
-            message: "האם את בטוחה שברצונך למחוק את בית הקפה?",
+            title: "Delete Cafe",
+            message: "Are you sure you want to delete this cafe?",
             preferredStyle: .alert
         )
 
         alert.addAction(
             UIAlertAction(
-                title: "ביטול",
+                title: "Cancel",
                 style: .cancel
             )
         )
 
         alert.addAction(
             UIAlertAction(
-                title: "מחיקה",
+                title: "Delete",
                 style: .destructive
             ) { [weak self] _ in
+
                 self?.onDelete?()
 
                 self?.navigationController?
@@ -150,36 +162,183 @@ class CafeDetailsViewController: UIViewController {
         present(alert, animated: true)
     }
 
+    // MARK: - Map
+
+    private func showCafeLocation() {
+        guard let cafe = cafe else { return }
+
+        let cleanAddress = cafe.address
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        let cleanCity = cafe.city
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        let fullAddress: String
+
+        if cleanAddress.isEmpty {
+            fullAddress = cleanCity
+        } else {
+            fullAddress = "\(cleanAddress), \(cleanCity)"
+        }
+
+        guard !fullAddress.isEmpty else {
+            print("No address available")
+            return
+        }
+
+        let geocoder = CLGeocoder()
+
+        geocoder.geocodeAddressString(
+            fullAddress
+        ) { [weak self] placemarks, error in
+
+            guard let self = self else { return }
+
+            if let error = error {
+                print(
+                    "Geocoding error:",
+                    error.localizedDescription
+                )
+                return
+            }
+
+            guard let location =
+                placemarks?.first?.location else {
+
+                print("Location not found")
+                return
+            }
+
+            let coordinate =
+                location.coordinate
+
+            DispatchQueue.main.async {
+
+                // Remove previous pin
+                self.mapView.removeAnnotations(
+                    self.mapView.annotations
+                )
+
+                // Create new pin
+                let annotation =
+                    MKPointAnnotation()
+
+                annotation.coordinate =
+                    coordinate
+
+                annotation.title =
+                    cafe.name
+
+                annotation.subtitle =
+                    fullAddress
+
+                self.mapView.addAnnotation(
+                    annotation
+                )
+
+                // Zoom closer to the exact address
+                let region =
+                    MKCoordinateRegion(
+                        center: coordinate,
+                        latitudinalMeters: 700,
+                        longitudinalMeters: 700
+                    )
+
+                self.mapView.setRegion(
+                    region,
+                    animated: true
+                )
+
+                self.mapView.selectAnnotation(
+                    annotation,
+                    animated: true
+                )
+            }
+        }
+    }
+
     // MARK: - Appearance
 
     private func configureAppearance() {
-        view.backgroundColor = .systemBackground
 
-        nameLabel.textColor = .label
-        cityLabel.textColor = .secondaryLabel
-        ratingLabel.textColor = .systemOrange
-        viewsLabel.textColor = .secondaryLabel
+        view.backgroundColor =
+            CafeAppTheme.Colors.background
+
+        nameLabel.textColor =
+            CafeAppTheme.Colors.darkBrown
+
+        cityLabel.textColor =
+            CafeAppTheme.Colors.darkBrown
+
+        ratingLabel.textColor =
+            CafeAppTheme.Colors.star
+
+        viewsLabel.textColor =
+            CafeAppTheme.Colors.secondaryText
+
+        nameLabel.font =
+            UIFont.systemFont(
+                ofSize: 22,
+                weight: .bold
+            )
+
+        cityLabel.font =
+            UIFont.systemFont(
+                ofSize: 17,
+                weight: .medium
+            )
+
+        ratingLabel.font =
+            UIFont.systemFont(
+                ofSize: 24
+            )
 
         notesTextView.backgroundColor =
-            .secondarySystemBackground
+            CafeAppTheme.Colors.card
 
-        notesTextView.textColor = .label
-        notesTextView.layer.cornerRadius = 12
+        notesTextView.textColor =
+            CafeAppTheme.Colors.darkBrown
+
+        notesTextView.layer.cornerRadius =
+            CafeAppTheme.Metrics.fieldRadius
+
+        notesTextView.layer.borderWidth = 1
+
+        notesTextView.layer.borderColor =
+            CafeAppTheme.Colors.secondaryText
+                .withAlphaComponent(0.25)
+                .cgColor
+
+        notesTextView.textContainerInset =
+            UIEdgeInsets(
+                top: 12,
+                left: 12,
+                bottom: 12,
+                right: 12
+            )
+
         notesTextView.isEditable = false
+
+        // Map appearance
+        mapView.layer.cornerRadius =
+            CafeAppTheme.Metrics.fieldRadius
+
+        mapView.clipsToBounds = true
     }
 
     // MARK: - Error
 
     private func showError(_ message: String) {
+
         let alert = UIAlertController(
-            title: "שגיאה",
+            title: "Error",
             message: message,
             preferredStyle: .alert
         )
 
         alert.addAction(
             UIAlertAction(
-                title: "אישור",
+                title: "OK",
                 style: .default
             )
         )
@@ -201,4 +360,3 @@ class CafeDetailsViewController: UIViewController {
         )
     }
 }
-

@@ -13,6 +13,7 @@ struct Cafe {
     var rating: Int
     var notes: String
     var createdAt: Date
+    var address: String
 
     init(
         id: String = UUID().uuidString,
@@ -20,7 +21,8 @@ struct Cafe {
         city: String,
         rating: Int,
         notes: String,
-        createdAt: Date = Date()
+        createdAt: Date = Date(),
+        address: String
     ) {
         self.id = id
         self.name = name
@@ -28,6 +30,7 @@ struct Cafe {
         self.rating = rating
         self.notes = notes
         self.createdAt = createdAt
+        self.address = address
     }
 
     init?(document: DocumentSnapshot) {
@@ -38,6 +41,7 @@ struct Cafe {
               let notes = data["notes"] as? String else {
             return nil
         }
+        let address = data["address"] as? String ?? ""
 
         self.id = document.documentID
         self.name = name
@@ -46,6 +50,8 @@ struct Cafe {
         self.notes = notes
         self.createdAt =
             (data["createdAt"] as? Timestamp)?.dateValue() ?? Date()
+        self.address = address
+        
     }
 
     var dictionary: [String: Any] {
@@ -54,7 +60,8 @@ struct Cafe {
             "city": city,
             "rating": rating,
             "notes": notes,
-            "createdAt": Timestamp(date: createdAt)
+            "createdAt": Timestamp(date: createdAt),
+            "address":address
         ]
     }
 }

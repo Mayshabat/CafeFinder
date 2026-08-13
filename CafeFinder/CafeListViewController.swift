@@ -1,4 +1,4 @@
-//
+////
 //  CafeListViewController.swift
 //  CafeFinder
 //
@@ -10,43 +10,126 @@ import FirebaseFirestore
 
 class CafeListViewController: UIViewController,
                               UITableViewDelegate,
-                              UITableViewDataSource {
+                              UITableViewDataSource,
+                              UISearchBarDelegate {
 
+    // MARK: - Outlets
+
+    @IBOutlet weak var emptyStateLabel: UILabel!
     @IBOutlet weak var tableView: UITableView!
+    @IBOutlet weak var searchBar: UISearchBar!
+
+    // MARK: - Properties
 
     private var cafes: [Cafe] = []
+    private var filteredCafes: [Cafe] = []
+    private var isSearching = false
+
     private var cafesListener: ListenerRegistration?
+
+    // MARK: - Lifecycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        title = "בתי קפה"
-
         tableView.delegate = self
         tableView.dataSource = self
+        searchBar.delegate = self
 
         configureAppearance()
+
+        emptyStateLabel.isHidden = true
+
         observeCafes()
     }
 
     // MARK: - Firestore
 
     private func observeCafes() {
-        cafesListener = CafeFirestoreService.shared.observeCafes {
-            [weak self] result in
 
-            DispatchQueue.main.async {
-                switch result {
+        cafesListener =
+            CafeFirestoreService.shared.observeCafes {
+                [weak self] result in
 
-                case .success(let cafes):
-                    self?.cafes = cafes
-                    self?.tableView.reloadData()
+                DispatchQueue.main.async {
 
-                case .failure(let error):
-                    self?.showError(error.localizedDescription)
+                    switch result {
+
+                    case .success(let cafes):
+
+                        self?.cafes = cafes
+                        self?.filteredCafes = cafes
+
+                        self?.tableView.reloadData()
+                        self?.updateEmptyState()
+
+                    case .failure(let error):
+
+                        self?.showError(
+                            error.localizedDescription
+                        )
+                    }
                 }
             }
+    }
+
+    // MARK: - Empty State
+
+    private func updateEmptyState() {
+
+        let displayedCafes =
+            isSearching ? filteredCafes : cafes
+
+        emptyStateLabel.isHidden =
+            !displayedCafes.isEmpty
+    }
+
+    // MARK: - Search
+
+    func searchBar(
+        _ searchBar: UISearchBar,
+        textDidChange searchText: String
+    ) {
+
+        let text = searchText
+            .trimmingCharacters(
+                in: .whitespacesAndNewlines
+            )
+
+        if text.isEmpty {
+
+            isSearching = false
+            filteredCafes = cafes
+
+        } else {
+
+            isSearching = true
+
+            filteredCafes = cafes.filter { cafe in
+
+                cafe.name
+                    .localizedCaseInsensitiveContains(text)
+
+                ||
+
+                cafe.city
+                    .localizedCaseInsensitiveContains(text)
+
+                ||
+
+                cafe.address
+                    .localizedCaseInsensitiveContains(text)
+            }
         }
+
+        tableView.reloadData()
+        updateEmptyState()
+    }
+
+    func searchBarSearchButtonClicked(
+        _ searchBar: UISearchBar
+    ) {
+        searchBar.resignFirstResponder()
     }
 
     // MARK: - Navigation
@@ -55,100 +138,118 @@ class CafeListViewController: UIViewController,
         for segue: UIStoryboardSegue,
         sender: Any?
     ) {
-        print("Segue identifier:", segue.identifier ?? "nil")
-        print("Destination:", type(of: segue.destination))
 
+        // ADD CAFE
         if segue.identifier == "showAddCafe" {
 
             let addVC: AddCafeViewController?
 
             if let directAddVC =
-                segue.destination as? AddCafeViewController {
+                segue.destination
+                    as? AddCafeViewController {
 
                 addVC = directAddVC
 
             } else if let navigationController =
-                        segue.destination as? UINavigationController {
+                        segue.destination
+                            as? UINavigationController {
 
-                addVC = navigationController.topViewController
-                    as? AddCafeViewController
+                addVC =
+                    navigationController
+                        .topViewController
+                        as? AddCafeViewController
 
             } else {
+
                 addVC = nil
             }
 
             guard let addVC = addVC else {
-                print("ERROR: AddCafeViewController was not found")
                 return
             }
 
-            print("AddCafeViewController found")
+            addVC.onSave = {
+                [weak self] cafe in
 
-            addVC.onSave = { [weak self] cafe in
-                print("onSave received:", cafe.name)
+                CafeFirestoreService.shared
+                    .addCafe(cafe) { error in
 
-                CafeFirestoreService.shared.addCafe(cafe) { error in
-                    DispatchQueue.main.async {
-                        if let error = error {
-                            print(
-                                "FIRESTORE SAVE ERROR:",
-                                error.localizedDescription
-                            )
+                        DispatchQueue.main.async {
 
-                            self?.showError(
-                                error.localizedDescription
-                            )
-                        } else {
-                            print("FIRESTORE SAVE SUCCESS")
+                            if let error = error {
+
+                                self?.showError(
+                                    error.localizedDescription
+                                )
+                            }
                         }
                     }
-                }
             }
+        }
 
-        } else if segue.identifier == "showDetails",
-                  let detailsVC =
-                    segue.destination as? CafeDetailsViewController,
-                  let cafe = sender as? Cafe {
+        // DETAILS
+        else if segue.identifier == "showDetails",
+                let detailsVC =
+                    segue.destination
+                        as? CafeDetailsViewController,
+                let cafe = sender as? Cafe {
 
             detailsVC.cafe = cafe
 
-            detailsVC.onDelete = { [weak self] in
-                CafeFirestoreService.shared.deleteCafe(
-                    id: cafe.id
-                ) { error in
-                    DispatchQueue.main.async {
-                        if let error = error {
-                            self?.showError(
-                                error.localizedDescription
-                            )
+            // DELETE
+            detailsVC.onDelete = {
+                [weak self] in
+
+                CafeFirestoreService.shared
+                    .deleteCafe(
+                        id: cafe.id
+                    ) { error in
+
+                        DispatchQueue.main.async {
+
+                            if let error = error {
+
+                                self?.showError(
+                                    error.localizedDescription
+                                )
+                            }
                         }
                     }
-                }
             }
 
-            detailsVC.onEdit = { [weak self] editedCafe in
-                CafeFirestoreService.shared.updateCafe(
-                    editedCafe
-                ) { error in
-                    DispatchQueue.main.async {
-                        if let error = error {
-                            self?.showError(
-                                error.localizedDescription
-                            )
+            // EDIT
+            detailsVC.onEdit = {
+                [weak self] editedCafe in
+
+                CafeFirestoreService.shared
+                    .updateCafe(
+                        editedCafe
+                    ) { error in
+
+                        DispatchQueue.main.async {
+
+                            if let error = error {
+
+                                self?.showError(
+                                    error.localizedDescription
+                                )
+                            }
                         }
                     }
-                }
             }
         }
     }
 
-    // MARK: - UITableViewDataSource
+    // MARK: - Table View Data Source
 
     func tableView(
         _ tableView: UITableView,
         numberOfRowsInSection section: Int
     ) -> Int {
-        return cafes.count
+
+        return isSearching
+            ? filteredCafes.count
+            : cafes.count
     }
 
     func tableView(
@@ -156,41 +257,70 @@ class CafeListViewController: UIViewController,
         cellForRowAt indexPath: IndexPath
     ) -> UITableViewCell {
 
-        let identifier = "CafeCell"
+        guard let cell =
+            tableView.dequeueReusableCell(
+                withIdentifier: "CafeCell",
+                for: indexPath
+            ) as? CafeTableViewCell else {
 
-        let cell = tableView.dequeueReusableCell(
-            withIdentifier: identifier
-        ) ?? UITableViewCell(
-            style: .subtitle,
-            reuseIdentifier: identifier
-        )
+            return UITableViewCell()
+        }
 
-        let cafe = cafes[indexPath.row]
+        let cafe = isSearching
+            ? filteredCafes[indexPath.row]
+            : cafes[indexPath.row]
 
-        cell.textLabel?.text = cafe.name
-        cell.detailTextLabel?.text =
-            "\(cafe.city) · \(String(repeating: "⭐️", count: cafe.rating))"
+        // Cafe Name
+        cell.cafeNameLabel.text = cafe.name
 
-        cell.textLabel?.textColor = .label
-        cell.detailTextLabel?.textColor = .secondaryLabel
-        cell.backgroundColor = .secondarySystemBackground
-        cell.accessoryType = .disclosureIndicator
+        cell.cafeNameLabel.textColor =
+            CafeAppTheme.Colors.darkBrown
+
+        // City
+        cell.cityLabel.text = cafe.city
+
+        cell.cityLabel.textColor =
+            CafeAppTheme.Colors.secondaryText
+
+        // Rating
+        var stars = ""
+
+        for index in 1...5 {
+
+            if index <= cafe.rating {
+                stars += "★"
+            } else {
+                stars += "☆"
+            }
+        }
+
+        cell.ratingLabel.text = stars
+
+        cell.ratingLabel.textColor =
+            CafeAppTheme.Colors.star
+
+        // Cell Appearance
+        cell.backgroundColor = .clear
+        cell.selectionStyle = .none
 
         return cell
     }
 
-    // MARK: - UITableViewDelegate
+    // MARK: - Table View Delegate
 
     func tableView(
         _ tableView: UITableView,
         didSelectRowAt indexPath: IndexPath
     ) {
+
         tableView.deselectRow(
             at: indexPath,
             animated: true
         )
 
-        let selectedCafe = cafes[indexPath.row]
+        let selectedCafe = isSearching
+            ? filteredCafes[indexPath.row]
+            : cafes[indexPath.row]
 
         performSegue(
             withIdentifier: "showDetails",
@@ -202,40 +332,117 @@ class CafeListViewController: UIViewController,
         _ tableView: UITableView,
         heightForRowAt indexPath: IndexPath
     ) -> CGFloat {
-        return 72
+
+        return 90
     }
 
     // MARK: - Appearance
 
     private func configureAppearance() {
-        view.backgroundColor = .systemBackground
-        tableView.backgroundColor = .systemBackground
-        tableView.separatorStyle = .singleLine
+
+        // Search Bar
+
+        searchBar.searchTextField
+            .attributedPlaceholder =
+            NSAttributedString(
+                string: "Search cafes...",
+                attributes: [
+                    .foregroundColor:
+                        CafeAppTheme
+                            .Colors
+                            .secondaryText
+                ]
+            )
+
+        searchBar.searchTextField.textColor =
+            CafeAppTheme.Colors.darkBrown
+
+        searchBar.searchTextField.backgroundColor =
+            .white
+
+        // Background
+
+        view.backgroundColor =
+            CafeAppTheme.Colors.background
+
+        tableView.backgroundColor = .clear
+
+        tableView.separatorStyle = .none
+
+        // Empty State
+
+        emptyStateLabel.text =
+            "☕️ No cafes found"
+
+        emptyStateLabel.textColor =
+            CafeAppTheme.Colors.darkBrown
+
+        emptyStateLabel.textAlignment =
+            .center
+
+        emptyStateLabel.font =
+            UIFont.systemFont(
+                ofSize: 18,
+                weight: .semibold
+            )
+
+        // Navigation Bar
 
         navigationController?
             .navigationBar
-            .prefersLargeTitles = true
+            .prefersLargeTitles = false
 
-        navigationItem.largeTitleDisplayMode = .always
+        navigationItem.largeTitleDisplayMode =
+            .never
+
+        let appearance =
+            UINavigationBarAppearance()
+
+        appearance
+            .configureWithTransparentBackground()
+
+        appearance.titleTextAttributes = [
+            .foregroundColor:
+                CafeAppTheme.Colors.darkBrown
+        ]
+
+        navigationController?
+            .navigationBar
+            .standardAppearance = appearance
+
+        navigationController?
+            .navigationBar
+            .scrollEdgeAppearance = appearance
+
+        navigationController?
+            .navigationBar
+            .compactAppearance = appearance
     }
 
-    // MARK: - Error Alert
+    // MARK: - Error
 
-    private func showError(_ message: String) {
-        let alert = UIAlertController(
-            title: "שגיאה",
-            message: message,
-            preferredStyle: .alert
-        )
+    private func showError(
+        _ message: String
+    ) {
+
+        let alert =
+            UIAlertController(
+                title: "Error",
+                message: message,
+                preferredStyle: .alert
+            )
 
         alert.addAction(
             UIAlertAction(
-                title: "אישור",
+                title: "OK",
                 style: .default
             )
         )
 
-        present(alert, animated: true)
+        present(
+            alert,
+            animated: true
+        )
     }
 
     // MARK: - Cleanup
