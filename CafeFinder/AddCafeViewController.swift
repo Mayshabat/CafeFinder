@@ -4,7 +4,6 @@
 //
 //  Created by Student14 on 04/08/2026.
 //
-
 import UIKit
 
 class AddCafeViewController: UIViewController {
@@ -38,29 +37,25 @@ class AddCafeViewController: UIViewController {
         configureStepper()
         configureAppearance()
         configureScreen()
-
-        view.backgroundColor = CafeAppTheme.Colors.background
-
-        CafeAppTheme.styleTextField(nameTextField)
-        CafeAppTheme.styleTextField(cityTextField)
-        CafeAppTheme.styleTextField(addressTextField)
-
-        CafeAppTheme.styleTextView(notesTextView)
-        CafeAppTheme.stylePrimaryButton(saveButton)
     }
 
     // MARK: - Screen Configuration
 
     private func configureStepper() {
+
         ratingStepper.minimumValue = 1
         ratingStepper.maximumValue = 5
         ratingStepper.stepValue = 1
         ratingStepper.value = 1
 
+        ratingStepper.tintColor =
+            CafeAppTheme.Colors.primary
+
         updateRatingLabel(rating: 1)
     }
 
     private func configureScreen() {
+
         if let cafe = cafeToEdit {
             configureEditMode(with: cafe)
         } else {
@@ -69,160 +64,412 @@ class AddCafeViewController: UIViewController {
     }
 
     private func configureAddMode() {
-        saveButton.setTitle("Save Cafe", for: .normal)
+
+        title = "Add Cafe"
+
+        saveButton.setTitle(
+            "Save Cafe",
+            for: .normal
+        )
     }
 
     private func configureEditMode(with cafe: Cafe) {
-        saveButton.setTitle("Update Cafe", for: .normal)
+
+        title = "Edit Cafe"
+
+        saveButton.setTitle(
+            "Update Cafe",
+            for: .normal
+        )
 
         nameTextField.text = cafe.name
         cityTextField.text = cafe.city
         addressTextField.text = cafe.address
         notesTextView.text = cafe.notes
 
-        ratingStepper.value = Double(cafe.rating)
-        updateRatingLabel(rating: cafe.rating)
+        ratingStepper.value =
+            Double(cafe.rating)
+
+        updateRatingLabel(
+            rating: cafe.rating
+        )
     }
 
     // MARK: - Rating
 
-    @IBAction func stepperChanged(_ sender: UIStepper) {
+    @IBAction func stepperChanged(
+        _ sender: UIStepper
+    ) {
+
         let rating = Int(sender.value)
-        updateRatingLabel(rating: rating)
+
+        updateRatingLabel(
+            rating: rating
+        )
     }
 
-    private func updateRatingLabel(rating: Int) {
+    private func updateRatingLabel(
+        rating: Int
+    ) {
+
         var stars = ""
 
         for index in 1...5 {
-            stars += index <= rating ? "★" : "☆"
+
+            stars +=
+                index <= rating
+                ? "★"
+                : "☆"
         }
 
         ratingLabel.text = stars
+
+        ratingLabel.textColor =
+            CafeAppTheme.Colors.star
     }
 
     // MARK: - Save
 
-    @IBAction func savePressed(_ sender: UIButton) {
+    @IBAction func savePressed(
+        _ sender: UIButton
+    ) {
 
-        let name = nameTextField.text?
-            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        view.endEditing(true)
 
-        let city = cityTextField.text?
-            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let name =
+            nameTextField.text?
+                .trimmingCharacters(
+                    in: .whitespacesAndNewlines
+                ) ?? ""
 
-        let address = addressTextField.text?
-            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let city =
+            cityTextField.text?
+                .trimmingCharacters(
+                    in: .whitespacesAndNewlines
+                ) ?? ""
 
-        let notes = notesTextView.text?
-            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let address =
+            addressTextField.text?
+                .trimmingCharacters(
+                    in: .whitespacesAndNewlines
+                ) ?? ""
+
+        let notes =
+            notesTextView.text?
+                .trimmingCharacters(
+                    in: .whitespacesAndNewlines
+                ) ?? ""
 
         guard !name.isEmpty else {
-            showAlert(message: "Please enter a cafe name")
+
+            showAlert(
+                message:
+                    "Please enter a cafe name"
+            )
+
             return
         }
 
         guard !city.isEmpty else {
-            showAlert(message: "Please enter a city")
+
+            showAlert(
+                message:
+                    "Please enter a city"
+            )
+
             return
         }
 
         guard !address.isEmpty else {
-            showAlert(message: "Please enter an address")
+
+            showAlert(
+                message:
+                    "Please enter an address"
+            )
+
             return
         }
 
         let cafe = Cafe(
-            id: cafeToEdit?.id ?? UUID().uuidString,
+            id:
+                cafeToEdit?.id
+                ?? UUID().uuidString,
+
             name: name,
+
             city: city,
-            rating: Int(ratingStepper.value),
+
+            rating:
+                Int(ratingStepper.value),
+
             notes: notes,
-            createdAt: cafeToEdit?.createdAt ?? Date(),
+
+            createdAt:
+                cafeToEdit?.createdAt
+                ?? Date(),
+
             address: address
         )
 
         onSave?(cafe)
 
         navigationController?
-            .popViewController(animated: true)
+            .popViewController(
+                animated: true
+            )
     }
 
     // MARK: - Appearance
 
     private func configureAppearance() {
 
-        // Backgrounds
-        nameTextField.backgroundColor = .secondarySystemBackground
-        cityTextField.backgroundColor = .secondarySystemBackground
-        addressTextField.backgroundColor = .secondarySystemBackground
-        notesTextView.backgroundColor = .secondarySystemBackground
+        // MARK: Background
 
-        // Text colors
-        nameTextField.textColor = CafeAppTheme.Colors.darkBrown
-        cityTextField.textColor = CafeAppTheme.Colors.darkBrown
-        addressTextField.textColor = CafeAppTheme.Colors.darkBrown
-        notesTextView.textColor = CafeAppTheme.Colors.darkBrown
+        view.backgroundColor =
+            CafeAppTheme.Colors.background
 
-        // Labels
-        cafeNameLabel.textColor = CafeAppTheme.Colors.darkBrown
-        cityLabel.textColor = CafeAppTheme.Colors.darkBrown
-        addressLabel.textColor = CafeAppTheme.Colors.darkBrown
-        notesLabel.textColor = CafeAppTheme.Colors.darkBrown
+        // MARK: Text Fields
 
-        // Placeholders
-        nameTextField.attributedPlaceholder = NSAttributedString(
-            string: "Enter Name",
-            attributes: [
-                .foregroundColor: CafeAppTheme.Colors.secondaryText
-            ]
+        CafeAppTheme.styleTextField(
+            nameTextField
         )
 
-        cityTextField.attributedPlaceholder = NSAttributedString(
-            string: "Enter City",
-            attributes: [
-                .foregroundColor: CafeAppTheme.Colors.secondaryText
-            ]
+        CafeAppTheme.styleTextField(
+            cityTextField
         )
 
-        addressTextField.attributedPlaceholder = NSAttributedString(
-            string: "Enter full address",
-            attributes: [
-                .foregroundColor: CafeAppTheme.Colors.secondaryText
-            ]
+        CafeAppTheme.styleTextField(
+            addressTextField
         )
 
-        // Corners
-        nameTextField.layer.cornerRadius = 10
-        cityTextField.layer.cornerRadius = 10
-        addressTextField.layer.cornerRadius = 10
-        notesTextView.layer.cornerRadius = 10
-        saveButton.layer.cornerRadius = 12
+        // MARK: Notes
 
-        // Rating
-        ratingLabel.textColor = CafeAppTheme.Colors.star
+        CafeAppTheme.styleTextView(
+            notesTextView
+        )
 
-        // Navigation
-        let navAppearance = UINavigationBarAppearance()
-        navAppearance.configureWithTransparentBackground()
+        // MARK: Save Button
 
-        navAppearance.titleTextAttributes = [
-            .foregroundColor: CafeAppTheme.Colors.darkBrown
+        CafeAppTheme.stylePrimaryButton(
+            saveButton
+        )
+
+        // MARK: Labels
+
+        let labels = [
+            cafeNameLabel,
+            cityLabel,
+            addressLabel,
+            notesLabel
         ]
 
-        navigationController?.navigationBar.standardAppearance = navAppearance
-        navigationController?.navigationBar.scrollEdgeAppearance = navAppearance
+        labels.forEach { label in
+
+            label?.textColor =
+                CafeAppTheme
+                    .Colors
+                    .darkBrown
+
+            label?.font =
+                UIFont.systemFont(
+                    ofSize: 15,
+                    weight: .semibold
+                )
+        }
+
+        // MARK: Rating
+
+        ratingLabel.textColor =
+            CafeAppTheme.Colors.star
+
+        ratingLabel.font =
+            UIFont.systemFont(
+                ofSize: 22,
+                weight: .semibold
+            )
+
+        // MARK: Placeholders
+
+        configurePlaceholders()
+
+        // MARK: Navigation Bar
+
+        configureNavigationBar()
+    }
+
+    // MARK: - Placeholders
+
+    private func configurePlaceholders() {
+
+        nameTextField.attributedPlaceholder =
+            makePlaceholder(
+                "Enter cafe name"
+            )
+
+        cityTextField.attributedPlaceholder =
+            makePlaceholder(
+                "Enter city"
+            )
+
+        addressTextField.attributedPlaceholder =
+            makePlaceholder(
+                "Enter full address"
+            )
+    }
+
+    private func makePlaceholder(
+        _ text: String
+    ) -> NSAttributedString {
+
+        return NSAttributedString(
+            string: text,
+            attributes: [
+                .foregroundColor:
+                    CafeAppTheme
+                        .Colors
+                        .secondaryText
+            ]
+        )
+    }
+
+    // MARK: - Navigation Bar
+
+    private func configureNavigationBar() {
+
+        let appearance =
+            UINavigationBarAppearance()
+
+        appearance
+            .configureWithOpaqueBackground()
+
+        appearance.backgroundColor =
+            CafeAppTheme.Colors.background
+
+        appearance.titleTextAttributes = [
+            .foregroundColor:
+                CafeAppTheme
+                    .Colors
+                    .darkBrown,
+
+            .font:
+                UIFont.systemFont(
+                    ofSize: 18,
+                    weight: .bold
+                )
+        ]
+
+        navigationController?
+            .navigationBar
+            .standardAppearance =
+                appearance
+
+        navigationController?
+            .navigationBar
+            .scrollEdgeAppearance =
+                appearance
+
+        navigationController?
+            .navigationBar
+            .compactAppearance =
+                appearance
+
+        navigationController?
+            .navigationBar
+            .tintColor =
+                CafeAppTheme
+                    .Colors
+                    .primary
+    }
+
+    // MARK: - Dark Mode
+
+    override func traitCollectionDidChange(
+        _ previousTraitCollection:
+            UITraitCollection?
+    ) {
+
+        super.traitCollectionDidChange(
+            previousTraitCollection
+        )
+
+        if previousTraitCollection?
+            .hasDifferentColorAppearance(
+                comparedTo: traitCollection
+            ) == true {
+
+            updateDynamicAppearance()
+        }
+    }
+
+    private func updateDynamicAppearance() {
+
+        view.backgroundColor =
+            CafeAppTheme.Colors.background
+
+        CafeAppTheme.styleTextField(
+            nameTextField
+        )
+
+        CafeAppTheme.styleTextField(
+            cityTextField
+        )
+
+        CafeAppTheme.styleTextField(
+            addressTextField
+        )
+
+        CafeAppTheme.styleTextView(
+            notesTextView
+        )
+
+        CafeAppTheme.stylePrimaryButton(
+            saveButton
+        )
+
+        cafeNameLabel.textColor =
+            CafeAppTheme.Colors.darkBrown
+
+        cityLabel.textColor =
+            CafeAppTheme.Colors.darkBrown
+
+        addressLabel.textColor =
+            CafeAppTheme.Colors.darkBrown
+
+        notesLabel.textColor =
+            CafeAppTheme.Colors.darkBrown
+
+        ratingLabel.textColor =
+            CafeAppTheme.Colors.star
+
+        configurePlaceholders()
+        configureNavigationBar()
+    }
+
+    // MARK: - Keyboard
+
+    @IBAction func dismissKeyboard(
+        _ sender: UITapGestureRecognizer
+    ) {
+
+        view.endEditing(true)
     }
 
     // MARK: - Alert
 
-    private func showAlert(message: String) {
+    private func showAlert(
+        message: String
+    ) {
 
-        let alert = UIAlertController(
-            title: "Missing Information",
-            message: message,
-            preferredStyle: .alert
-        )
+        let alert =
+            UIAlertController(
+                title:
+                    "Missing Information",
+
+                message: message,
+
+                preferredStyle:
+                    .alert
+            )
 
         alert.addAction(
             UIAlertAction(
@@ -231,6 +478,9 @@ class AddCafeViewController: UIViewController {
             )
         )
 
-        present(alert, animated: true)
+        present(
+            alert,
+            animated: true
+        )
     }
 }

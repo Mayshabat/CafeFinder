@@ -1,4 +1,4 @@
-////
+//
 //  CafeListViewController.swift
 //  CafeFinder
 //
@@ -272,13 +272,11 @@ class CafeListViewController: UIViewController,
 
         // Cafe Name
         cell.cafeNameLabel.text = cafe.name
-
         cell.cafeNameLabel.textColor =
             CafeAppTheme.Colors.darkBrown
 
         // City
         cell.cityLabel.text = cafe.city
-
         cell.cityLabel.textColor =
             CafeAppTheme.Colors.secondaryText
 
@@ -295,12 +293,12 @@ class CafeListViewController: UIViewController,
         }
 
         cell.ratingLabel.text = stars
-
         cell.ratingLabel.textColor =
             CafeAppTheme.Colors.star
 
         // Cell Appearance
         cell.backgroundColor = .clear
+        cell.contentView.backgroundColor = .clear
         cell.selectionStyle = .none
 
         return cell
@@ -340,45 +338,66 @@ class CafeListViewController: UIViewController,
 
     private func configureAppearance() {
 
-        // Search Bar
+        // MARK: Search Bar
 
-        searchBar.searchTextField
-            .attributedPlaceholder =
-            NSAttributedString(
-                string: "Search cafes...",
-                attributes: [
-                    .foregroundColor:
-                        CafeAppTheme
-                            .Colors
-                            .secondaryText
-                ]
-            )
+        searchBar.backgroundImage = UIImage()
+        searchBar.barTintColor = .clear
+        searchBar.backgroundColor = .clear
+
+        searchBar.searchTextField.backgroundColor =
+            CafeAppTheme.Colors.card
 
         searchBar.searchTextField.textColor =
             CafeAppTheme.Colors.darkBrown
 
-        searchBar.searchTextField.backgroundColor =
-            .white
+        searchBar.searchTextField.tintColor =
+            CafeAppTheme.Colors.primary
 
-        // Background
+        searchBar.searchTextField.layer.cornerRadius = 12
+        searchBar.searchTextField.clipsToBounds = true
+
+        searchBar.searchTextField.attributedPlaceholder =
+            NSAttributedString(
+                string: "Search cafes...",
+                attributes: [
+                    .foregroundColor:
+                        CafeAppTheme.Colors.secondaryText
+                ]
+            )
+
+        // Search icon
+        if let searchIcon =
+            searchBar.searchTextField.leftView as? UIImageView {
+
+            searchIcon.tintColor =
+                CafeAppTheme.Colors.secondaryText
+        }
+
+        // MARK: Background
 
         view.backgroundColor =
             CafeAppTheme.Colors.background
 
         tableView.backgroundColor = .clear
-
         tableView.separatorStyle = .none
 
-        // Empty State
+        tableView.contentInset =
+            UIEdgeInsets(
+                top: 8,
+                left: 0,
+                bottom: 20,
+                right: 0
+            )
+
+        // MARK: Empty State
 
         emptyStateLabel.text =
             "☕️ No cafes found"
 
         emptyStateLabel.textColor =
-            CafeAppTheme.Colors.darkBrown
+            CafeAppTheme.Colors.secondaryText
 
-        emptyStateLabel.textAlignment =
-            .center
+        emptyStateLabel.textAlignment = .center
 
         emptyStateLabel.font =
             UIFont.systemFont(
@@ -386,7 +405,7 @@ class CafeListViewController: UIViewController,
                 weight: .semibold
             )
 
-        // Navigation Bar
+        // MARK: Navigation Bar
 
         navigationController?
             .navigationBar
@@ -398,12 +417,20 @@ class CafeListViewController: UIViewController,
         let appearance =
             UINavigationBarAppearance()
 
-        appearance
-            .configureWithTransparentBackground()
+        appearance.configureWithOpaqueBackground()
+
+        appearance.backgroundColor =
+            CafeAppTheme.Colors.background
 
         appearance.titleTextAttributes = [
             .foregroundColor:
-                CafeAppTheme.Colors.darkBrown
+                CafeAppTheme.Colors.darkBrown,
+
+            .font:
+                UIFont.systemFont(
+                    ofSize: 18,
+                    weight: .bold
+                )
         ]
 
         navigationController?
@@ -417,6 +444,11 @@ class CafeListViewController: UIViewController,
         navigationController?
             .navigationBar
             .compactAppearance = appearance
+
+        navigationController?
+            .navigationBar
+            .tintColor =
+                CafeAppTheme.Colors.primary
     }
 
     // MARK: - Error

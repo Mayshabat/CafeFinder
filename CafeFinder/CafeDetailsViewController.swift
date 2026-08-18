@@ -2,7 +2,6 @@
 //  CafeDetailsViewController.swift
 //  CafeFinder
 //
-
 import UIKit
 import FirebaseDatabase
 import MapKit
@@ -42,23 +41,32 @@ class CafeDetailsViewController: UIViewController {
     // MARK: - Display Data
 
     private func displayCafeDetails() {
+
         guard let cafe = cafe else {
             showError("Cafe details could not be found")
             return
         }
 
+        title = "Cafe Details"
+
         nameLabel.text = cafe.name
         cityLabel.text = cafe.city
         ratingLabel.text = createStars(for: cafe.rating)
 
-        if cafe.notes.isEmpty {
+        if cafe.notes
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .isEmpty {
+
             notesTextView.text = "No notes added"
+
         } else {
+
             notesTextView.text = cafe.notes
         }
     }
 
     private func createStars(for rating: Int) -> String {
+
         var stars = ""
 
         for index in 1...5 {
@@ -71,18 +79,26 @@ class CafeDetailsViewController: UIViewController {
     // MARK: - Realtime Database
 
     private func observeViews() {
-        guard let cafe = cafe else { return }
 
-        CafeRealtimeService.shared.incrementViews(for: cafe.id)
-
-        viewsHandle = CafeRealtimeService.shared.observeViews(
-            for: cafe.id
-        ) { [weak self] views in
-
-            DispatchQueue.main.async {
-                self?.viewsLabel.text = "Views: \(views)"
-            }
+        guard let cafe = cafe else {
+            return
         }
+
+        CafeRealtimeService.shared
+            .incrementViews(for: cafe.id)
+
+        viewsHandle =
+            CafeRealtimeService.shared
+                .observeViews(
+                    for: cafe.id
+                ) { [weak self] views in
+
+                    DispatchQueue.main.async {
+
+                        self?.viewsLabel.text =
+                            "Views: \(views)"
+                    }
+                }
     }
 
     // MARK: - Navigation
@@ -91,19 +107,25 @@ class CafeDetailsViewController: UIViewController {
         for segue: UIStoryboardSegue,
         sender: Any?
     ) {
+
         guard segue.identifier == "showEditCafe" else {
             return
         }
 
         if let addVC =
-            segue.destination as? AddCafeViewController {
+            segue.destination
+                as? AddCafeViewController {
 
             configureEditScreen(addVC)
 
-        } else if let navigationController =
-                    segue.destination as? UINavigationController,
-                  let addVC =
-                    navigationController.topViewController
+        } else if
+            let navigationController =
+                segue.destination
+                    as? UINavigationController,
+
+            let addVC =
+                navigationController
+                    .topViewController
                     as? AddCafeViewController {
 
             configureEditScreen(addVC)
@@ -113,16 +135,21 @@ class CafeDetailsViewController: UIViewController {
     private func configureEditScreen(
         _ addVC: AddCafeViewController
     ) {
+
         addVC.cafeToEdit = cafe
 
-        addVC.onSave = { [weak self] editedCafe in
-            guard let self = self else { return }
+        addVC.onSave = {
+            [weak self] editedCafe in
+
+            guard let self = self else {
+                return
+            }
 
             self.cafe = editedCafe
 
             self.displayCafeDetails()
 
-            // Refresh the map after editing the address
+            // Refresh map if address changed
             self.showCafeLocation()
 
             self.onEdit?(editedCafe)
@@ -131,13 +158,17 @@ class CafeDetailsViewController: UIViewController {
 
     // MARK: - Delete
 
-    @IBAction func deletePressed(_ sender: UIButton) {
+    @IBAction func deletePressed(
+        _ sender: UIButton
+    ) {
 
-        let alert = UIAlertController(
-            title: "Delete Cafe",
-            message: "Are you sure you want to delete this cafe?",
-            preferredStyle: .alert
-        )
+        let alert =
+            UIAlertController(
+                title: "Delete Cafe",
+                message:
+                    "Are you sure you want to delete this cafe?",
+                preferredStyle: .alert
+            )
 
         alert.addAction(
             UIAlertAction(
@@ -154,34 +185,54 @@ class CafeDetailsViewController: UIViewController {
 
                 self?.onDelete?()
 
-                self?.navigationController?
-                    .popViewController(animated: true)
+                self?
+                    .navigationController?
+                    .popViewController(
+                        animated: true
+                    )
             }
         )
 
-        present(alert, animated: true)
+        present(
+            alert,
+            animated: true
+        )
     }
 
     // MARK: - Map
 
     private func showCafeLocation() {
-        guard let cafe = cafe else { return }
 
-        let cleanAddress = cafe.address
-            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let cafe = cafe else {
+            return
+        }
 
-        let cleanCity = cafe.city
-            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let cleanAddress =
+            cafe.address
+                .trimmingCharacters(
+                    in: .whitespacesAndNewlines
+                )
+
+        let cleanCity =
+            cafe.city
+                .trimmingCharacters(
+                    in: .whitespacesAndNewlines
+                )
 
         let fullAddress: String
 
         if cleanAddress.isEmpty {
+
             fullAddress = cleanCity
+
         } else {
-            fullAddress = "\(cleanAddress), \(cleanCity)"
+
+            fullAddress =
+                "\(cleanAddress), \(cleanCity)"
         }
 
         guard !fullAddress.isEmpty else {
+
             print("No address available")
             return
         }
@@ -192,13 +243,17 @@ class CafeDetailsViewController: UIViewController {
             fullAddress
         ) { [weak self] placemarks, error in
 
-            guard let self = self else { return }
+            guard let self = self else {
+                return
+            }
 
             if let error = error {
+
                 print(
                     "Geocoding error:",
                     error.localizedDescription
                 )
+
                 return
             }
 
@@ -214,12 +269,12 @@ class CafeDetailsViewController: UIViewController {
 
             DispatchQueue.main.async {
 
-                // Remove previous pin
+                // Remove old pin
                 self.mapView.removeAnnotations(
                     self.mapView.annotations
                 )
 
-                // Create new pin
+                // New pin
                 let annotation =
                     MKPointAnnotation()
 
@@ -236,7 +291,7 @@ class CafeDetailsViewController: UIViewController {
                     annotation
                 )
 
-                // Zoom closer to the exact address
+                // Zoom
                 let region =
                     MKCoordinateRegion(
                         center: coordinate,
@@ -261,26 +316,28 @@ class CafeDetailsViewController: UIViewController {
 
     private func configureAppearance() {
 
+        // Background
+
         view.backgroundColor =
             CafeAppTheme.Colors.background
+
+        // Cafe Name
 
         nameLabel.textColor =
             CafeAppTheme.Colors.darkBrown
 
-        cityLabel.textColor =
-            CafeAppTheme.Colors.darkBrown
-
-        ratingLabel.textColor =
-            CafeAppTheme.Colors.star
-
-        viewsLabel.textColor =
-            CafeAppTheme.Colors.secondaryText
-
         nameLabel.font =
             UIFont.systemFont(
-                ofSize: 22,
+                ofSize: 24,
                 weight: .bold
             )
+
+        nameLabel.numberOfLines = 0
+
+        // City
+
+        cityLabel.textColor =
+            CafeAppTheme.Colors.secondaryText
 
         cityLabel.font =
             UIFont.systemFont(
@@ -288,10 +345,31 @@ class CafeDetailsViewController: UIViewController {
                 weight: .medium
             )
 
+        cityLabel.numberOfLines = 0
+
+        // Rating
+
+        ratingLabel.textColor =
+            CafeAppTheme.Colors.star
+
         ratingLabel.font =
             UIFont.systemFont(
-                ofSize: 24
+                ofSize: 23,
+                weight: .semibold
             )
+
+        // Views
+
+        viewsLabel.textColor =
+            CafeAppTheme.Colors.secondaryText
+
+        viewsLabel.font =
+            UIFont.systemFont(
+                ofSize: 14,
+                weight: .medium
+            )
+
+        // Notes
 
         notesTextView.backgroundColor =
             CafeAppTheme.Colors.card
@@ -299,14 +377,25 @@ class CafeDetailsViewController: UIViewController {
         notesTextView.textColor =
             CafeAppTheme.Colors.darkBrown
 
+        notesTextView.tintColor =
+            CafeAppTheme.Colors.primary
+
+        notesTextView.font =
+            UIFont.systemFont(
+                ofSize: 16,
+                weight: .regular
+            )
+
         notesTextView.layer.cornerRadius =
             CafeAppTheme.Metrics.fieldRadius
 
         notesTextView.layer.borderWidth = 1
 
         notesTextView.layer.borderColor =
-            CafeAppTheme.Colors.secondaryText
-                .withAlphaComponent(0.25)
+            CafeAppTheme.Colors.border
+                .resolvedColor(
+                    with: traitCollection
+                )
                 .cgColor
 
         notesTextView.textContainerInset =
@@ -318,23 +407,145 @@ class CafeDetailsViewController: UIViewController {
             )
 
         notesTextView.isEditable = false
+        notesTextView.isSelectable = true
 
-        // Map appearance
+        // Map
+
         mapView.layer.cornerRadius =
             CafeAppTheme.Metrics.fieldRadius
 
+        mapView.layer.borderWidth = 1
+
+        mapView.layer.borderColor =
+            CafeAppTheme.Colors.border
+                .resolvedColor(
+                    with: traitCollection
+                )
+                .cgColor
+
         mapView.clipsToBounds = true
+
+        // Navigation Bar
+
+        configureNavigationBar()
+    }
+
+    // MARK: - Navigation Bar Appearance
+
+    private func configureNavigationBar() {
+
+        let appearance =
+            UINavigationBarAppearance()
+
+        appearance.configureWithOpaqueBackground()
+
+        appearance.backgroundColor =
+            CafeAppTheme.Colors.background
+
+        appearance.titleTextAttributes = [
+            .foregroundColor:
+                CafeAppTheme.Colors.darkBrown,
+
+            .font:
+                UIFont.systemFont(
+                    ofSize: 18,
+                    weight: .bold
+                )
+        ]
+
+        navigationController?
+            .navigationBar
+            .standardAppearance =
+                appearance
+
+        navigationController?
+            .navigationBar
+            .scrollEdgeAppearance =
+                appearance
+
+        navigationController?
+            .navigationBar
+            .compactAppearance =
+                appearance
+
+        navigationController?
+            .navigationBar
+            .tintColor =
+                CafeAppTheme.Colors.primary
+    }
+
+    // MARK: - Dark Mode
+
+    override func traitCollectionDidChange(
+        _ previousTraitCollection:
+            UITraitCollection?
+    ) {
+
+        super.traitCollectionDidChange(
+            previousTraitCollection
+        )
+
+        if previousTraitCollection?
+            .hasDifferentColorAppearance(
+                comparedTo: traitCollection
+            ) == true {
+
+            updateDynamicAppearance()
+        }
+    }
+
+    private func updateDynamicAppearance() {
+
+        view.backgroundColor =
+            CafeAppTheme.Colors.background
+
+        nameLabel.textColor =
+            CafeAppTheme.Colors.darkBrown
+
+        cityLabel.textColor =
+            CafeAppTheme.Colors.secondaryText
+
+        ratingLabel.textColor =
+            CafeAppTheme.Colors.star
+
+        viewsLabel.textColor =
+            CafeAppTheme.Colors.secondaryText
+
+        notesTextView.backgroundColor =
+            CafeAppTheme.Colors.card
+
+        notesTextView.textColor =
+            CafeAppTheme.Colors.darkBrown
+
+        notesTextView.layer.borderColor =
+            CafeAppTheme.Colors.border
+                .resolvedColor(
+                    with: traitCollection
+                )
+                .cgColor
+
+        mapView.layer.borderColor =
+            CafeAppTheme.Colors.border
+                .resolvedColor(
+                    with: traitCollection
+                )
+                .cgColor
+
+        configureNavigationBar()
     }
 
     // MARK: - Error
 
-    private func showError(_ message: String) {
+    private func showError(
+        _ message: String
+    ) {
 
-        let alert = UIAlertController(
-            title: "Error",
-            message: message,
-            preferredStyle: .alert
-        )
+        let alert =
+            UIAlertController(
+                title: "Error",
+                message: message,
+                preferredStyle: .alert
+            )
 
         alert.addAction(
             UIAlertAction(
@@ -343,20 +554,27 @@ class CafeDetailsViewController: UIViewController {
             )
         )
 
-        present(alert, animated: true)
+        present(
+            alert,
+            animated: true
+        )
     }
 
     // MARK: - Cleanup
 
     deinit {
-        guard let cafe = cafe,
-              let viewsHandle = viewsHandle else {
+
+        guard
+            let cafe = cafe,
+            let viewsHandle = viewsHandle
+        else {
             return
         }
 
-        CafeRealtimeService.shared.removeViewsObserver(
-            for: cafe.id,
-            handle: viewsHandle
-        )
+        CafeRealtimeService.shared
+            .removeViewsObserver(
+                for: cafe.id,
+                handle: viewsHandle
+            )
     }
 }
