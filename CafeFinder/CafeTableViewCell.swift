@@ -1,4 +1,4 @@
-////
+//
 //  CafeTableViewCell.swift
 //  CafeFinder
 //
@@ -49,7 +49,11 @@ class CafeTableViewCell: UITableViewCell {
         contentView.layer.borderWidth = 1
 
         contentView.layer.borderColor =
-            CafeAppTheme.Colors.border.cgColor
+            CafeAppTheme.Colors.border
+                .resolvedColor(
+                    with: traitCollection
+                )
+                .cgColor
 
         contentView.layer.masksToBounds = true
 
@@ -99,7 +103,7 @@ class CafeTableViewCell: UITableViewCell {
         ratingLabel.numberOfLines = 1
     }
 
-    // MARK: - Dark Mode Changes
+    // MARK: - Dark Mode
 
     override func traitCollectionDidChange(
         _ previousTraitCollection: UITraitCollection?

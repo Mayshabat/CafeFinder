@@ -15,14 +15,18 @@ enum CafeAppTheme {
 
         // Main screen background
         static let background = UIColor { traitCollection in
+
             if traitCollection.userInterfaceStyle == .dark {
+
                 return UIColor(
                     red: 24 / 255,
                     green: 21 / 255,
                     blue: 20 / 255,
                     alpha: 1
                 )
+
             } else {
+
                 return UIColor(
                     red: 248 / 255,
                     green: 245 / 255,
@@ -34,28 +38,36 @@ enum CafeAppTheme {
 
         // Cards / TextFields / TextViews
         static let card = UIColor { traitCollection in
+
             if traitCollection.userInterfaceStyle == .dark {
+
                 return UIColor(
                     red: 38 / 255,
                     green: 34 / 255,
                     blue: 32 / 255,
                     alpha: 1
                 )
+
             } else {
-                return UIColor.white
+
+                return .white
             }
         }
 
         // Main coffee brown
         static let primary = UIColor { traitCollection in
+
             if traitCollection.userInterfaceStyle == .dark {
+
                 return UIColor(
                     red: 190 / 255,
                     green: 145 / 255,
                     blue: 115 / 255,
                     alpha: 1
                 )
+
             } else {
+
                 return UIColor(
                     red: 123 / 255,
                     green: 85 / 255,
@@ -67,14 +79,18 @@ enum CafeAppTheme {
 
         // Main text color
         static let darkBrown = UIColor { traitCollection in
+
             if traitCollection.userInterfaceStyle == .dark {
+
                 return UIColor(
                     red: 245 / 255,
                     green: 238 / 255,
                     blue: 233 / 255,
                     alpha: 1
                 )
+
             } else {
+
                 return UIColor(
                     red: 58 / 255,
                     green: 41 / 255,
@@ -86,14 +102,18 @@ enum CafeAppTheme {
 
         // Secondary text
         static let secondaryText = UIColor { traitCollection in
+
             if traitCollection.userInterfaceStyle == .dark {
+
                 return UIColor(
                     red: 190 / 255,
                     green: 181 / 255,
                     blue: 176 / 255,
                     alpha: 1
                 )
+
             } else {
+
                 return UIColor(
                     red: 138 / 255,
                     green: 129 / 255,
@@ -113,10 +133,16 @@ enum CafeAppTheme {
 
         // Border color
         static let border = UIColor { traitCollection in
+
             if traitCollection.userInterfaceStyle == .dark {
-                return UIColor.white.withAlphaComponent(0.15)
+
+                return UIColor.white
+                    .withAlphaComponent(0.15)
+
             } else {
-                return UIColor.black.withAlphaComponent(0.10)
+
+                return UIColor.black
+                    .withAlphaComponent(0.10)
             }
         }
 
@@ -124,9 +150,10 @@ enum CafeAppTheme {
         static let destructive = UIColor.systemRed
     }
 
-    // MARK: - Sizes
+    // MARK: - Metrics
 
     enum Metrics {
+
         static let cardRadius: CGFloat = 18
         static let fieldRadius: CGFloat = 12
         static let buttonRadius: CGFloat = 14
@@ -135,9 +162,11 @@ enum CafeAppTheme {
         static let standardSpacing: CGFloat = 12
     }
 
-    // MARK: - Text Fields
+    // MARK: - Text Field
 
-    static func styleTextField(_ textField: UITextField) {
+    static func styleTextField(
+        _ textField: UITextField
+    ) {
 
         textField.backgroundColor = Colors.card
         textField.textColor = Colors.darkBrown
@@ -148,12 +177,21 @@ enum CafeAppTheme {
             weight: .regular
         )
 
-        textField.layer.cornerRadius = Metrics.fieldRadius
+        textField.layer.cornerRadius =
+            Metrics.fieldRadius
+
         textField.layer.borderWidth = 1
-        textField.layer.borderColor = Colors.border.cgColor
+
+        textField.layer.borderColor =
+            Colors.border
+                .resolvedColor(
+                    with: textField.traitCollection
+                )
+                .cgColor
 
         textField.layer.masksToBounds = true
 
+        // Left padding
         textField.leftView = UIView(
             frame: CGRect(
                 x: 0,
@@ -168,7 +206,9 @@ enum CafeAppTheme {
 
     // MARK: - Text View
 
-    static func styleTextView(_ textView: UITextView) {
+    static func styleTextView(
+        _ textView: UITextView
+    ) {
 
         textView.backgroundColor = Colors.card
         textView.textColor = Colors.darkBrown
@@ -179,96 +219,149 @@ enum CafeAppTheme {
             weight: .regular
         )
 
-        textView.layer.cornerRadius = Metrics.fieldRadius
+        textView.layer.cornerRadius =
+            Metrics.fieldRadius
+
         textView.layer.borderWidth = 1
-        textView.layer.borderColor = Colors.border.cgColor
+
+        textView.layer.borderColor =
+            Colors.border
+                .resolvedColor(
+                    with: textView.traitCollection
+                )
+                .cgColor
 
         textView.layer.masksToBounds = true
 
-        textView.textContainerInset = UIEdgeInsets(
-            top: 12,
-            left: 12,
-            bottom: 12,
-            right: 12
-        )
+        textView.textContainerInset =
+            UIEdgeInsets(
+                top: 12,
+                left: 12,
+                bottom: 12,
+                right: 12
+            )
     }
 
     // MARK: - Primary Button
 
-    static func stylePrimaryButton(_ button: UIButton) {
+    static func stylePrimaryButton(
+        _ button: UIButton
+    ) {
 
         button.backgroundColor = Colors.primary
-        button.setTitleColor(.white, for: .normal)
 
-        button.titleLabel?.font = UIFont.systemFont(
-            ofSize: 17,
-            weight: .semibold
+        button.setTitleColor(
+            .white,
+            for: .normal
         )
 
-        button.layer.cornerRadius = Metrics.buttonRadius
+        button.titleLabel?.font =
+            UIFont.systemFont(
+                ofSize: 17,
+                weight: .semibold
+            )
 
-        button.layer.shadowColor = UIColor.black.cgColor
+        button.layer.cornerRadius =
+            Metrics.buttonRadius
+
+        button.layer.shadowColor =
+            UIColor.black.cgColor
+
         button.layer.shadowOpacity = 0.12
-        button.layer.shadowOffset = CGSize(
-            width: 0,
-            height: 4
-        )
-        button.layer.shadowRadius = 8
 
+        button.layer.shadowOffset =
+            CGSize(
+                width: 0,
+                height: 4
+            )
+
+        button.layer.shadowRadius = 8
         button.layer.masksToBounds = false
     }
 
     // MARK: - Secondary Button
 
-    static func styleSecondaryButton(_ button: UIButton) {
+    static func styleSecondaryButton(
+        _ button: UIButton
+    ) {
 
         button.backgroundColor = Colors.card
-        button.setTitleColor(Colors.primary, for: .normal)
 
-        button.titleLabel?.font = UIFont.systemFont(
-            ofSize: 16,
-            weight: .semibold
+        button.setTitleColor(
+            Colors.primary,
+            for: .normal
         )
 
-        button.layer.cornerRadius = Metrics.buttonRadius
+        button.titleLabel?.font =
+            UIFont.systemFont(
+                ofSize: 16,
+                weight: .semibold
+            )
+
+        button.layer.cornerRadius =
+            Metrics.buttonRadius
+
         button.layer.borderWidth = 1
-        button.layer.borderColor = Colors.primary.cgColor
+
+        button.layer.borderColor =
+            Colors.primary
+                .resolvedColor(
+                    with: button.traitCollection
+                )
+                .cgColor
 
         button.layer.masksToBounds = true
     }
 
     // MARK: - Destructive Button
 
-    static func styleDestructiveButton(_ button: UIButton) {
+    static func styleDestructiveButton(
+        _ button: UIButton
+    ) {
 
-        button.backgroundColor = Colors.destructive
-        button.setTitleColor(.white, for: .normal)
+        button.backgroundColor =
+            Colors.destructive
 
-        button.titleLabel?.font = UIFont.systemFont(
-            ofSize: 16,
-            weight: .semibold
+        button.setTitleColor(
+            .white,
+            for: .normal
         )
 
-        button.layer.cornerRadius = Metrics.buttonRadius
+        button.titleLabel?.font =
+            UIFont.systemFont(
+                ofSize: 16,
+                weight: .semibold
+            )
+
+        button.layer.cornerRadius =
+            Metrics.buttonRadius
+
         button.layer.masksToBounds = true
     }
 
     // MARK: - Card
 
-    static func styleCard(_ view: UIView) {
+    static func styleCard(
+        _ view: UIView
+    ) {
 
         view.backgroundColor = Colors.card
 
-        view.layer.cornerRadius = Metrics.cardRadius
+        view.layer.cornerRadius =
+            Metrics.cardRadius
 
-        view.layer.shadowColor = UIColor.black.cgColor
+        view.layer.shadowColor =
+            UIColor.black.cgColor
+
         view.layer.shadowOpacity = 0.10
-        view.layer.shadowOffset = CGSize(
-            width: 0,
-            height: 4
-        )
-        view.layer.shadowRadius = 10
 
+        view.layer.shadowOffset =
+            CGSize(
+                width: 0,
+                height: 4
+            )
+
+        view.layer.shadowRadius = 10
         view.layer.masksToBounds = false
     }
 }

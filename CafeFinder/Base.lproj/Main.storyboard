@@ -141,7 +141,7 @@
                                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="defaultCafe" translatesAutoresizingMaskIntoConstraints="NO" id="xSk-Nu-Yc8">
                                                 <rect key="frame" x="32" y="14" width="329" height="150"/>
                                                 <constraints>
-                                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="150" id="1Ay-vv-bzP"/>
+                                                    <constraint firstAttribute="height" constant="150" id="BVf-bh-jRg"/>
                                                 </constraints>
                                             </imageView>
                                         </subviews>
@@ -546,7 +546,7 @@
         <segue reference="88L-Ii-ybh"/>
     </inferredMetricsTieBreakers>
     <resources>
-        <image name="defaultCafe" width="205" height="148"/>
+        <image name="defaultCafe" width="77.333335876464844" height="49.333332061767578"/>
         <systemColor name="labelColor">
             <color white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>

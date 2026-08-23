@@ -4,24 +4,34 @@
 //
 //  Created by Student14 on 06/08/2026.
 //
+
 import Foundation
 import FirebaseDatabase
 
 final class CafeRealtimeService {
 
+    // MARK: - Singleton
+
     static let shared = CafeRealtimeService()
+
+    // MARK: - Properties
 
     private let databaseReference: DatabaseReference
 
+    // MARK: - Initializer
+
     private init() {
+
         databaseReference = Database.database(
             url: "https://cafefinder-e1ae1-default-rtdb.firebaseio.com"
         ).reference()
     }
 
+    // MARK: - Increment Views
+
     func incrementViews(for cafeID: String) {
+
         guard !cafeID.isEmpty else {
-            print("❌ Cafe ID is empty")
             return
         }
 
@@ -29,9 +39,8 @@ final class CafeRealtimeService {
             .child("cafeViews")
             .child(cafeID)
 
-        print("Trying to increment views for:", cafeID)
-
         viewsReference.runTransactionBlock { currentData in
+
             let currentViews =
                 (currentData.value as? NSNumber)?.intValue ?? 0
 
@@ -41,20 +50,18 @@ final class CafeRealtimeService {
                 withValue: currentData
             )
 
-        } andCompletionBlock: { error, committed, snapshot in
+        } andCompletionBlock: { error, _, _ in
 
             if let error = error {
                 print(
-                    "❌ Realtime Database error:",
+                    "Realtime Database error:",
                     error.localizedDescription
                 )
-                return
             }
-
-            print("✅ Transaction committed:", committed)
-            print("✅ New value:", snapshot?.value ?? "nil")
         }
     }
+
+    // MARK: - Observe Views
 
     func observeViews(
         for cafeID: String,
@@ -69,15 +76,17 @@ final class CafeRealtimeService {
                 let views =
                     (snapshot.value as? NSNumber)?.intValue ?? 0
 
-                print("Views received:", views)
                 completion(views)
             }
     }
+
+    // MARK: - Remove Observer
 
     func removeViewsObserver(
         for cafeID: String,
         handle: DatabaseHandle
     ) {
+
         databaseReference
             .child("cafeViews")
             .child(cafeID)

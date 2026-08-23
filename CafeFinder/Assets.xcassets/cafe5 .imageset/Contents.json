@@ -1,17 +1,15 @@
 {
   "images" : [
     {
-      "filename" : "download.jpeg",
+      "filename" : "cafe5.jpeg",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "download (1).jpeg",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "images.jpeg",
       "idiom" : "universal",
       "scale" : "3x"
     }

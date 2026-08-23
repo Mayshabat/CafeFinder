@@ -2,8 +2,6 @@
 //  CafeListViewController.swift
 //  CafeFinder
 //
-//  Created by Student14 on 04/08/2026.
-//
 
 import UIKit
 import FirebaseFirestore
@@ -53,35 +51,29 @@ class CafeListViewController: UIViewController,
 
                 DispatchQueue.main.async {
 
+                    guard let self = self else {
+                        return
+                    }
+
                     switch result {
 
                     case .success(let cafes):
 
-                        self?.cafes = cafes
-                        self?.filteredCafes = cafes
+                        self.cafes = cafes
 
-                        self?.tableView.reloadData()
-                        self?.updateEmptyState()
+                        self.updateSearchResults()
+
+                        self.tableView.reloadData()
+                        self.updateEmptyState()
 
                     case .failure(let error):
 
-                        self?.showError(
+                        self.showError(
                             error.localizedDescription
                         )
                     }
                 }
             }
-    }
-
-    // MARK: - Empty State
-
-    private func updateEmptyState() {
-
-        let displayedCafes =
-            isSearching ? filteredCafes : cafes
-
-        emptyStateLabel.isHidden =
-            !displayedCafes.isEmpty
     }
 
     // MARK: - Search
@@ -91,36 +83,9 @@ class CafeListViewController: UIViewController,
         textDidChange searchText: String
     ) {
 
-        let text = searchText
-            .trimmingCharacters(
-                in: .whitespacesAndNewlines
-            )
-
-        if text.isEmpty {
-
-            isSearching = false
-            filteredCafes = cafes
-
-        } else {
-
-            isSearching = true
-
-            filteredCafes = cafes.filter { cafe in
-
-                cafe.name
-                    .localizedCaseInsensitiveContains(text)
-
-                ||
-
-                cafe.city
-                    .localizedCaseInsensitiveContains(text)
-
-                ||
-
-                cafe.address
-                    .localizedCaseInsensitiveContains(text)
-            }
-        }
+        updateSearchResults(
+            with: searchText
+        )
 
         tableView.reloadData()
         updateEmptyState()
@@ -129,7 +94,67 @@ class CafeListViewController: UIViewController,
     func searchBarSearchButtonClicked(
         _ searchBar: UISearchBar
     ) {
+
         searchBar.resignFirstResponder()
+    }
+
+    private func updateSearchResults(
+        with text: String? = nil
+    ) {
+
+        let searchText =
+            text ?? searchBar.text ?? ""
+
+        let cleanText =
+            searchText.trimmingCharacters(
+                in: .whitespacesAndNewlines
+            )
+
+        if cleanText.isEmpty {
+
+            isSearching = false
+            filteredCafes = cafes
+
+        } else {
+
+            isSearching = true
+
+            filteredCafes =
+                cafes.filter { cafe in
+
+                    cafe.name
+                        .localizedCaseInsensitiveContains(
+                            cleanText
+                        )
+
+                    ||
+
+                    cafe.city
+                        .localizedCaseInsensitiveContains(
+                            cleanText
+                        )
+
+                    ||
+
+                    cafe.address
+                        .localizedCaseInsensitiveContains(
+                            cleanText
+                        )
+                }
+        }
+    }
+
+    // MARK: - Empty State
+
+    private func updateEmptyState() {
+
+        let displayedCafes =
+            isSearching
+            ? filteredCafes
+            : cafes
+
+        emptyStateLabel.isHidden =
+            !displayedCafes.isEmpty
     }
 
     // MARK: - Navigation
@@ -139,7 +164,8 @@ class CafeListViewController: UIViewController,
         sender: Any?
     ) {
 
-        // ADD CAFE
+        // MARK: Add Cafe
+
         if segue.identifier == "showAddCafe" {
 
             let addVC: AddCafeViewController?
@@ -171,14 +197,23 @@ class CafeListViewController: UIViewController,
             addVC.onSave = {
                 [weak self] cafe in
 
+                guard let self = self else {
+                    return
+                }
+
+                var newCafe = cafe
+
+                newCafe.imageName =
+                    self.randomAvailableImageName()
+
                 CafeFirestoreService.shared
-                    .addCafe(cafe) { error in
+                    .addCafe(newCafe) { error in
 
                         DispatchQueue.main.async {
 
                             if let error = error {
 
-                                self?.showError(
+                                self.showError(
                                     error.localizedDescription
                                 )
                             }
@@ -187,7 +222,8 @@ class CafeListViewController: UIViewController,
             }
         }
 
-        // DETAILS
+        // MARK: Cafe Details
+
         else if segue.identifier == "showDetails",
                 let detailsVC =
                     segue.destination
@@ -196,7 +232,7 @@ class CafeListViewController: UIViewController,
 
             detailsVC.cafe = cafe
 
-            // DELETE
+            // Delete
             detailsVC.onDelete = {
                 [weak self] in
 
@@ -217,7 +253,7 @@ class CafeListViewController: UIViewController,
                     }
             }
 
-            // EDIT
+            // Edit
             detailsVC.onEdit = {
                 [weak self] editedCafe in
 
@@ -240,6 +276,44 @@ class CafeListViewController: UIViewController,
         }
     }
 
+    // MARK: - Random Cafe Image
+
+    private func randomAvailableImageName() -> String {
+
+        let allImages = [
+            "cafe1",
+            "cafe2",
+            "cafe3",
+            "cafe4",
+            "cafe5",
+            "cafe6"
+        ]
+
+        let usedImages =
+            Set(
+                cafes.map {
+                    $0.imageName
+                }
+            )
+
+        let availableImages =
+            allImages.filter {
+                !usedImages.contains($0)
+            }
+
+        // Use an unused image first
+        if let image =
+            availableImages.randomElement() {
+
+            return image
+        }
+
+        // If all images are already used,
+        // allow random reuse
+        return allImages.randomElement()
+            ?? "defaultCafe"
+    }
+
     // MARK: - Table View Data Source
 
     func tableView(
@@ -247,9 +321,7 @@ class CafeListViewController: UIViewController,
         numberOfRowsInSection section: Int
     ) -> Int {
 
-        return isSearching
-            ? filteredCafes.count
-            : cafes.count
+        return displayedCafes.count
     }
 
     func tableView(
@@ -257,49 +329,32 @@ class CafeListViewController: UIViewController,
         cellForRowAt indexPath: IndexPath
     ) -> UITableViewCell {
 
-        guard let cell =
-            tableView.dequeueReusableCell(
-                withIdentifier: "CafeCell",
-                for: indexPath
-            ) as? CafeTableViewCell else {
-
+        guard
+            let cell =
+                tableView.dequeueReusableCell(
+                    withIdentifier: "CafeCell",
+                    for: indexPath
+                ) as? CafeTableViewCell
+        else {
             return UITableViewCell()
         }
 
-        let cafe = isSearching
-            ? filteredCafes[indexPath.row]
-            : cafes[indexPath.row]
+        let cafe =
+            displayedCafes[indexPath.row]
 
         // Cafe Name
-        cell.cafeNameLabel.text = cafe.name
-        cell.cafeNameLabel.textColor =
-            CafeAppTheme.Colors.darkBrown
+        cell.cafeNameLabel.text =
+            cafe.name
 
         // City
-        cell.cityLabel.text = cafe.city
-        cell.cityLabel.textColor =
-            CafeAppTheme.Colors.secondaryText
+        cell.cityLabel.text =
+            cafe.city
 
         // Rating
-        var stars = ""
-
-        for index in 1...5 {
-
-            if index <= cafe.rating {
-                stars += "★"
-            } else {
-                stars += "☆"
-            }
-        }
-
-        cell.ratingLabel.text = stars
-        cell.ratingLabel.textColor =
-            CafeAppTheme.Colors.star
-
-        // Cell Appearance
-        cell.backgroundColor = .clear
-        cell.contentView.backgroundColor = .clear
-        cell.selectionStyle = .none
+        cell.ratingLabel.text =
+            createStars(
+                for: cafe.rating
+            )
 
         return cell
     }
@@ -316,9 +371,8 @@ class CafeListViewController: UIViewController,
             animated: true
         )
 
-        let selectedCafe = isSearching
-            ? filteredCafes[indexPath.row]
-            : cafes[indexPath.row]
+        let selectedCafe =
+            displayedCafes[indexPath.row]
 
         performSegue(
             withIdentifier: "showDetails",
@@ -334,15 +388,45 @@ class CafeListViewController: UIViewController,
         return 90
     }
 
+    // MARK: - Helpers
+
+    private var displayedCafes: [Cafe] {
+
+        return isSearching
+            ? filteredCafes
+            : cafes
+    }
+
+    private func createStars(
+        for rating: Int
+    ) -> String {
+
+        var stars = ""
+
+        for index in 1...5 {
+
+            stars +=
+                index <= rating
+                ? "★"
+                : "☆"
+        }
+
+        return stars
+    }
+
     // MARK: - Appearance
 
     private func configureAppearance() {
 
-        // MARK: Search Bar
+        // Search Bar
+        searchBar.backgroundImage =
+            UIImage()
 
-        searchBar.backgroundImage = UIImage()
-        searchBar.barTintColor = .clear
-        searchBar.backgroundColor = .clear
+        searchBar.barTintColor =
+            .clear
+
+        searchBar.backgroundColor =
+            .clear
 
         searchBar.searchTextField.backgroundColor =
             CafeAppTheme.Colors.card
@@ -353,33 +437,42 @@ class CafeListViewController: UIViewController,
         searchBar.searchTextField.tintColor =
             CafeAppTheme.Colors.primary
 
-        searchBar.searchTextField.layer.cornerRadius = 12
-        searchBar.searchTextField.clipsToBounds = true
+        searchBar.searchTextField.layer.cornerRadius =
+            CafeAppTheme.Metrics.fieldRadius
+
+        searchBar.searchTextField.clipsToBounds =
+            true
 
         searchBar.searchTextField.attributedPlaceholder =
             NSAttributedString(
                 string: "Search cafes...",
                 attributes: [
                     .foregroundColor:
-                        CafeAppTheme.Colors.secondaryText
+                        CafeAppTheme
+                            .Colors
+                            .secondaryText
                 ]
             )
 
-        // Search icon
         if let searchIcon =
-            searchBar.searchTextField.leftView as? UIImageView {
+            searchBar.searchTextField.leftView
+                as? UIImageView {
 
             searchIcon.tintColor =
-                CafeAppTheme.Colors.secondaryText
+                CafeAppTheme
+                    .Colors
+                    .secondaryText
         }
 
-        // MARK: Background
-
+        // Background
         view.backgroundColor =
             CafeAppTheme.Colors.background
 
-        tableView.backgroundColor = .clear
-        tableView.separatorStyle = .none
+        tableView.backgroundColor =
+            .clear
+
+        tableView.separatorStyle =
+            .none
 
         tableView.contentInset =
             UIEdgeInsets(
@@ -389,15 +482,17 @@ class CafeListViewController: UIViewController,
                 right: 0
             )
 
-        // MARK: Empty State
-
+        // Empty State
         emptyStateLabel.text =
             "☕️ No cafes found"
 
         emptyStateLabel.textColor =
-            CafeAppTheme.Colors.secondaryText
+            CafeAppTheme
+                .Colors
+                .secondaryText
 
-        emptyStateLabel.textAlignment = .center
+        emptyStateLabel.textAlignment =
+            .center
 
         emptyStateLabel.font =
             UIFont.systemFont(
@@ -405,8 +500,7 @@ class CafeListViewController: UIViewController,
                 weight: .semibold
             )
 
-        // MARK: Navigation Bar
-
+        // Navigation Bar
         navigationController?
             .navigationBar
             .prefersLargeTitles = false
@@ -414,17 +508,27 @@ class CafeListViewController: UIViewController,
         navigationItem.largeTitleDisplayMode =
             .never
 
+        configureNavigationBar()
+    }
+
+    // MARK: - Navigation Bar
+
+    private func configureNavigationBar() {
+
         let appearance =
             UINavigationBarAppearance()
 
-        appearance.configureWithOpaqueBackground()
+        appearance
+            .configureWithOpaqueBackground()
 
         appearance.backgroundColor =
             CafeAppTheme.Colors.background
 
         appearance.titleTextAttributes = [
             .foregroundColor:
-                CafeAppTheme.Colors.darkBrown,
+                CafeAppTheme
+                    .Colors
+                    .darkBrown,
 
             .font:
                 UIFont.systemFont(
@@ -435,20 +539,81 @@ class CafeListViewController: UIViewController,
 
         navigationController?
             .navigationBar
-            .standardAppearance = appearance
+            .standardAppearance =
+                appearance
 
         navigationController?
             .navigationBar
-            .scrollEdgeAppearance = appearance
+            .scrollEdgeAppearance =
+                appearance
 
         navigationController?
             .navigationBar
-            .compactAppearance = appearance
+            .compactAppearance =
+                appearance
 
         navigationController?
             .navigationBar
             .tintColor =
-                CafeAppTheme.Colors.primary
+                CafeAppTheme
+                    .Colors
+                    .primary
+    }
+
+    // MARK: - Dark Mode
+
+    override func traitCollectionDidChange(
+        _ previousTraitCollection:
+            UITraitCollection?
+    ) {
+
+        super.traitCollectionDidChange(
+            previousTraitCollection
+        )
+
+        if previousTraitCollection?
+            .hasDifferentColorAppearance(
+                comparedTo: traitCollection
+            ) == true {
+
+            updateDynamicAppearance()
+        }
+    }
+
+    private func updateDynamicAppearance() {
+
+        view.backgroundColor =
+            CafeAppTheme.Colors.background
+
+        searchBar.searchTextField.backgroundColor =
+            CafeAppTheme.Colors.card
+
+        searchBar.searchTextField.textColor =
+            CafeAppTheme.Colors.darkBrown
+
+        searchBar.searchTextField.tintColor =
+            CafeAppTheme.Colors.primary
+
+        searchBar.searchTextField
+            .attributedPlaceholder =
+            NSAttributedString(
+                string: "Search cafes...",
+                attributes: [
+                    .foregroundColor:
+                        CafeAppTheme
+                            .Colors
+                            .secondaryText
+                ]
+            )
+
+        emptyStateLabel.textColor =
+            CafeAppTheme
+                .Colors
+                .secondaryText
+
+        configureNavigationBar()
+
+        tableView.reloadData()
     }
 
     // MARK: - Error

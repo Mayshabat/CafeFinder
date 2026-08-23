@@ -1,9 +1,10 @@
-//
+////
 //  AddCafeViewController.swift
 //  CafeFinder
 //
 //  Created by Student14 on 04/08/2026.
 //
+
 import UIKit
 
 class AddCafeViewController: UIViewController {
@@ -17,6 +18,7 @@ class AddCafeViewController: UIViewController {
     @IBOutlet weak var ratingLabel: UILabel!
     @IBOutlet weak var notesTextView: UITextView!
     @IBOutlet weak var ratingStepper: UIStepper!
+
     @IBOutlet weak var saveButton: UIButton!
 
     @IBOutlet weak var cafeNameLabel: UILabel!
@@ -41,19 +43,6 @@ class AddCafeViewController: UIViewController {
 
     // MARK: - Screen Configuration
 
-    private func configureStepper() {
-
-        ratingStepper.minimumValue = 1
-        ratingStepper.maximumValue = 5
-        ratingStepper.stepValue = 1
-        ratingStepper.value = 1
-
-        ratingStepper.tintColor =
-            CafeAppTheme.Colors.primary
-
-        updateRatingLabel(rating: 1)
-    }
-
     private func configureScreen() {
 
         if let cafe = cafeToEdit {
@@ -73,7 +62,9 @@ class AddCafeViewController: UIViewController {
         )
     }
 
-    private func configureEditMode(with cafe: Cafe) {
+    private func configureEditMode(
+        with cafe: Cafe
+    ) {
 
         title = "Edit Cafe"
 
@@ -97,14 +88,27 @@ class AddCafeViewController: UIViewController {
 
     // MARK: - Rating
 
+    private func configureStepper() {
+
+        ratingStepper.minimumValue = 1
+        ratingStepper.maximumValue = 5
+        ratingStepper.stepValue = 1
+        ratingStepper.value = 1
+
+        ratingStepper.tintColor =
+            CafeAppTheme.Colors.primary
+
+        updateRatingLabel(
+            rating: 1
+        )
+    }
+
     @IBAction func stepperChanged(
         _ sender: UIStepper
     ) {
 
-        let rating = Int(sender.value)
-
         updateRatingLabel(
-            rating: rating
+            rating: Int(sender.value)
         )
     }
 
@@ -155,16 +159,17 @@ class AddCafeViewController: UIViewController {
                 ) ?? ""
 
         let notes =
-            notesTextView.text?
+            notesTextView.text
                 .trimmingCharacters(
                     in: .whitespacesAndNewlines
-                ) ?? ""
+                )
+
+        // MARK: Validation
 
         guard !name.isEmpty else {
 
             showAlert(
-                message:
-                    "Please enter a cafe name"
+                message: "Please enter a cafe name"
             )
 
             return
@@ -173,8 +178,7 @@ class AddCafeViewController: UIViewController {
         guard !city.isEmpty else {
 
             showAlert(
-                message:
-                    "Please enter a city"
+                message: "Please enter a city"
             )
 
             return
@@ -183,12 +187,13 @@ class AddCafeViewController: UIViewController {
         guard !address.isEmpty else {
 
             showAlert(
-                message:
-                    "Please enter an address"
+                message: "Please enter an address"
             )
 
             return
         }
+
+        // MARK: Create Cafe
 
         let cafe = Cafe(
             id:
@@ -208,7 +213,11 @@ class AddCafeViewController: UIViewController {
                 cafeToEdit?.createdAt
                 ?? Date(),
 
-            address: address
+            address: address,
+
+            imageName:
+                cafeToEdit?.imageName
+                ?? "defaultCafe"
         )
 
         onSave?(cafe)
@@ -223,12 +232,12 @@ class AddCafeViewController: UIViewController {
 
     private func configureAppearance() {
 
-        // MARK: Background
+        // Background
 
         view.backgroundColor =
             CafeAppTheme.Colors.background
 
-        // MARK: Text Fields
+        // Text Fields
 
         CafeAppTheme.styleTextField(
             nameTextField
@@ -242,19 +251,45 @@ class AddCafeViewController: UIViewController {
             addressTextField
         )
 
-        // MARK: Notes
+        // Notes
 
         CafeAppTheme.styleTextView(
             notesTextView
         )
 
-        // MARK: Save Button
+        // Save Button
 
         CafeAppTheme.stylePrimaryButton(
             saveButton
         )
 
-        // MARK: Labels
+        // Labels
+
+        configureLabels()
+
+        // Rating
+
+        ratingLabel.textColor =
+            CafeAppTheme.Colors.star
+
+        ratingLabel.font =
+            UIFont.systemFont(
+                ofSize: 22,
+                weight: .semibold
+            )
+
+        // Placeholders
+
+        configurePlaceholders()
+
+        // Navigation Bar
+
+        configureNavigationBar()
+    }
+
+    // MARK: - Labels
+
+    private func configureLabels() {
 
         let labels = [
             cafeNameLabel,
@@ -266,9 +301,7 @@ class AddCafeViewController: UIViewController {
         labels.forEach { label in
 
             label?.textColor =
-                CafeAppTheme
-                    .Colors
-                    .darkBrown
+                CafeAppTheme.Colors.darkBrown
 
             label?.font =
                 UIFont.systemFont(
@@ -276,25 +309,6 @@ class AddCafeViewController: UIViewController {
                     weight: .semibold
                 )
         }
-
-        // MARK: Rating
-
-        ratingLabel.textColor =
-            CafeAppTheme.Colors.star
-
-        ratingLabel.font =
-            UIFont.systemFont(
-                ofSize: 22,
-                weight: .semibold
-            )
-
-        // MARK: Placeholders
-
-        configurePlaceholders()
-
-        // MARK: Navigation Bar
-
-        configureNavigationBar()
     }
 
     // MARK: - Placeholders
@@ -426,20 +440,13 @@ class AddCafeViewController: UIViewController {
             saveButton
         )
 
-        cafeNameLabel.textColor =
-            CafeAppTheme.Colors.darkBrown
-
-        cityLabel.textColor =
-            CafeAppTheme.Colors.darkBrown
-
-        addressLabel.textColor =
-            CafeAppTheme.Colors.darkBrown
-
-        notesLabel.textColor =
-            CafeAppTheme.Colors.darkBrown
+        configureLabels()
 
         ratingLabel.textColor =
             CafeAppTheme.Colors.star
+
+        ratingStepper.tintColor =
+            CafeAppTheme.Colors.primary
 
         configurePlaceholders()
         configureNavigationBar()
@@ -462,13 +469,9 @@ class AddCafeViewController: UIViewController {
 
         let alert =
             UIAlertController(
-                title:
-                    "Missing Information",
-
+                title: "Missing Information",
                 message: message,
-
-                preferredStyle:
-                    .alert
+                preferredStyle: .alert
             )
 
         alert.addAction(
