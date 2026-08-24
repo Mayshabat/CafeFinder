@@ -2,8 +2,7 @@
 //  CafeTableViewCell.swift
 //  CafeFinder
 //
-//  Created by Student14 on 12/08/2026.
-//
+
 
 import UIKit
 
@@ -15,31 +14,40 @@ class CafeTableViewCell: UITableViewCell {
     @IBOutlet weak var cityLabel: UILabel!
     @IBOutlet weak var ratingLabel: UILabel!
 
+
     // MARK: - Lifecycle
 
     override func awakeFromNib() {
         super.awakeFromNib()
 
+        // הגדרת העיצוב כאשר התא נטען
         configureAppearance()
     }
 
     override func prepareForReuse() {
         super.prepareForReuse()
 
+        // ניקוי הנתונים לפני שימוש חוזר בתא
         cafeNameLabel.text = nil
         cityLabel.text = nil
         ratingLabel.text = nil
     }
 
+
     // MARK: - Appearance
 
+    // הגדרת העיצוב של תא בית הקפה
     private func configureAppearance() {
 
         // Cell
+
         backgroundColor = .clear
         selectionStyle = .none
 
+
         // Card
+
+        // עיצוב התא ככרטיס
         contentView.backgroundColor =
             CafeAppTheme.Colors.card
 
@@ -57,7 +65,9 @@ class CafeTableViewCell: UITableViewCell {
 
         contentView.layer.masksToBounds = true
 
+
         // Space around card
+
         contentView.directionalLayoutMargins =
             NSDirectionalEdgeInsets(
                 top: 8,
@@ -66,7 +76,9 @@ class CafeTableViewCell: UITableViewCell {
                 trailing: 16
             )
 
+
         // Cafe Name
+
         cafeNameLabel.textColor =
             CafeAppTheme.Colors.darkBrown
 
@@ -78,7 +90,9 @@ class CafeTableViewCell: UITableViewCell {
 
         cafeNameLabel.numberOfLines = 1
 
+
         // City
+
         cityLabel.textColor =
             CafeAppTheme.Colors.secondaryText
 
@@ -90,7 +104,9 @@ class CafeTableViewCell: UITableViewCell {
 
         cityLabel.numberOfLines = 1
 
+
         // Rating
+
         ratingLabel.textColor =
             CafeAppTheme.Colors.star
 
@@ -103,11 +119,14 @@ class CafeTableViewCell: UITableViewCell {
         ratingLabel.numberOfLines = 1
     }
 
+
     // MARK: - Dark Mode
 
+    // זיהוי מעבר בין מצב בהיר למצב כהה
     override func traitCollectionDidChange(
         _ previousTraitCollection: UITraitCollection?
     ) {
+
         super.traitCollectionDidChange(
             previousTraitCollection
         )
@@ -121,6 +140,7 @@ class CafeTableViewCell: UITableViewCell {
         }
     }
 
+    // עדכון צבעי התא בהתאם למצב התצוגה
     private func updateDynamicColors() {
 
         contentView.backgroundColor =
