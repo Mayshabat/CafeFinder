@@ -1,9 +1,3 @@
-////
-//  AddCafeViewController.swift
-//  CafeFinder
-//
-//  Created by Student14 on 04/08/2026.
-//
 
 import UIKit
 
@@ -26,10 +20,15 @@ class AddCafeViewController: UIViewController {
     @IBOutlet weak var addressLabel: UILabel!
     @IBOutlet weak var notesLabel: UILabel!
 
+
     // MARK: - Properties
 
+    // מעביר את בית הקפה שנשמר למסך הקודם
     var onSave: ((Cafe) -> Void)?
+
+    // אם קיים בית קפה - המסך נפתח במצב עריכה
     var cafeToEdit: Cafe?
+
 
     // MARK: - Lifecycle
 
@@ -41,8 +40,10 @@ class AddCafeViewController: UIViewController {
         configureScreen()
     }
 
+
     // MARK: - Screen Configuration
 
+    // קובע אם המסך משמש להוספה או לעריכה
     private func configureScreen() {
 
         if let cafe = cafeToEdit {
@@ -52,6 +53,7 @@ class AddCafeViewController: UIViewController {
         }
     }
 
+    // מצב הוספת בית קפה חדש
     private func configureAddMode() {
 
         title = "Add Cafe"
@@ -62,6 +64,7 @@ class AddCafeViewController: UIViewController {
         )
     }
 
+    // מצב עריכת בית קפה קיים
     private func configureEditMode(
         with cafe: Cafe
     ) {
@@ -73,6 +76,7 @@ class AddCafeViewController: UIViewController {
             for: .normal
         )
 
+        // הצגת הנתונים הקיימים בשדות
         nameTextField.text = cafe.name
         cityTextField.text = cafe.city
         addressTextField.text = cafe.address
@@ -86,8 +90,10 @@ class AddCafeViewController: UIViewController {
         )
     }
 
+
     // MARK: - Rating
 
+    // הגדרת דירוג בין 1 ל-5
     private func configureStepper() {
 
         ratingStepper.minimumValue = 1
@@ -103,6 +109,7 @@ class AddCafeViewController: UIViewController {
         )
     }
 
+    // מופעל כאשר המשתמש משנה את הדירוג
     @IBAction func stepperChanged(
         _ sender: UIStepper
     ) {
@@ -112,6 +119,7 @@ class AddCafeViewController: UIViewController {
         )
     }
 
+    // עדכון הכוכבים לפי הדירוג שנבחר
     private func updateRatingLabel(
         rating: Int
     ) {
@@ -132,12 +140,14 @@ class AddCafeViewController: UIViewController {
             CafeAppTheme.Colors.star
     }
 
+
     // MARK: - Save
 
     @IBAction func savePressed(
         _ sender: UIButton
     ) {
 
+        // סגירת המקלדת לפני השמירה
         view.endEditing(true)
 
         let name =
@@ -164,8 +174,10 @@ class AddCafeViewController: UIViewController {
                     in: .whitespacesAndNewlines
                 )
 
+
         // MARK: Validation
 
+        // בדיקה שכל שדות החובה מולאו
         guard !name.isEmpty else {
 
             showAlert(
@@ -193,8 +205,10 @@ class AddCafeViewController: UIViewController {
             return
         }
 
+
         // MARK: Create Cafe
 
+        // יצירת בית קפה חדש או עדכון בית קפה קיים
         let cafe = Cafe(
             id:
                 cafeToEdit?.id
@@ -220,22 +234,27 @@ class AddCafeViewController: UIViewController {
                 ?? "defaultCafe"
         )
 
+        // העברת בית הקפה לצורך שמירה
         onSave?(cafe)
 
+        // חזרה למסך הקודם
         navigationController?
             .popViewController(
                 animated: true
             )
     }
 
+
     // MARK: - Appearance
 
+    // הגדרת העיצוב הכללי של המסך
     private func configureAppearance() {
 
         // Background
 
         view.backgroundColor =
             CafeAppTheme.Colors.background
+
 
         // Text Fields
 
@@ -251,11 +270,13 @@ class AddCafeViewController: UIViewController {
             addressTextField
         )
 
+
         // Notes
 
         CafeAppTheme.styleTextView(
             notesTextView
         )
+
 
         // Save Button
 
@@ -263,9 +284,11 @@ class AddCafeViewController: UIViewController {
             saveButton
         )
 
+
         // Labels
 
         configureLabels()
+
 
         // Rating
 
@@ -278,17 +301,21 @@ class AddCafeViewController: UIViewController {
                 weight: .semibold
             )
 
+
         // Placeholders
 
         configurePlaceholders()
+
 
         // Navigation Bar
 
         configureNavigationBar()
     }
 
+
     // MARK: - Labels
 
+    // עיצוב הכותרות של שדות הקלט
     private func configureLabels() {
 
         let labels = [
@@ -311,8 +338,10 @@ class AddCafeViewController: UIViewController {
         }
     }
 
+
     // MARK: - Placeholders
 
+    // הגדרת הטקסט שמופיע בתוך השדות לפני ההקלדה
     private func configurePlaceholders() {
 
         nameTextField.attributedPlaceholder =
@@ -346,8 +375,10 @@ class AddCafeViewController: UIViewController {
         )
     }
 
+
     // MARK: - Navigation Bar
 
+    // התאמת העיצוב של סרגל הניווט
     private func configureNavigationBar() {
 
         let appearance =
@@ -395,8 +426,10 @@ class AddCafeViewController: UIViewController {
                     .primary
     }
 
+
     // MARK: - Dark Mode
 
+    // זיהוי מעבר בין מצב בהיר למצב כהה
     override func traitCollectionDidChange(
         _ previousTraitCollection:
             UITraitCollection?
@@ -415,6 +448,7 @@ class AddCafeViewController: UIViewController {
         }
     }
 
+    // עדכון צבעי המסך בהתאם למצב התצוגה
     private func updateDynamicAppearance() {
 
         view.backgroundColor =
@@ -452,8 +486,10 @@ class AddCafeViewController: UIViewController {
         configureNavigationBar()
     }
 
+
     // MARK: - Keyboard
 
+    // סגירת המקלדת בלחיצה מחוץ לשדות
     @IBAction func dismissKeyboard(
         _ sender: UITapGestureRecognizer
     ) {
@@ -461,8 +497,10 @@ class AddCafeViewController: UIViewController {
         view.endEditing(true)
     }
 
+
     // MARK: - Alert
 
+    // הצגת הודעה כאשר חסר מידע
     private func showAlert(
         message: String
     ) {
