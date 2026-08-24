@@ -17,13 +17,20 @@ class CafeListViewController: UIViewController,
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var searchBar: UISearchBar!
 
+
     // MARK: - Properties
 
+    // רשימת בתי הקפה שהתקבלה מ-Firebase
     private var cafes: [Cafe] = []
+
+    // רשימת בתי הקפה לאחר סינון בחיפוש
     private var filteredCafes: [Cafe] = []
+
     private var isSearching = false
 
+    // מאזין לשינויים ב-Firestore
     private var cafesListener: ListenerRegistration?
+
 
     // MARK: - Lifecycle
 
@@ -33,17 +40,19 @@ class CafeListViewController: UIViewController,
         tableView.delegate = self
         tableView.dataSource = self
         searchBar.delegate = self
-        
-        // design
+
         configureAppearance()
 
         emptyStateLabel.isHidden = true
-        //listening to firebase
+
+        // התחלת האזנה לנתונים מ-Firebase
         observeCafes()
     }
 
+
     // MARK: - Firestore
 
+    // קבלת בתי הקפה והאזנה לשינויים בזמן אמת
     private func observeCafes() {
 
         cafesListener =
@@ -77,8 +86,10 @@ class CafeListViewController: UIViewController,
             }
     }
 
+
     // MARK: - Search
 
+    // סינון הרשימה בזמן שהמשתמש מקליד בחיפוש
     func searchBar(
         _ searchBar: UISearchBar,
         textDidChange searchText: String
@@ -99,6 +110,7 @@ class CafeListViewController: UIViewController,
         searchBar.resignFirstResponder()
     }
 
+    // חיפוש לפי שם, עיר או כתובת
     private func updateSearchResults(
         with text: String? = nil
     ) {
@@ -145,8 +157,10 @@ class CafeListViewController: UIViewController,
         }
     }
 
+
     // MARK: - Empty State
 
+    // הצגת הודעה כאשר אין בתי קפה להצגה
     private func updateEmptyState() {
 
         let displayedCafes =
@@ -157,6 +171,7 @@ class CafeListViewController: UIViewController,
         emptyStateLabel.isHidden =
             !displayedCafes.isEmpty
     }
+
 
     // MARK: - Navigation
 
@@ -195,6 +210,7 @@ class CafeListViewController: UIViewController,
                 return
             }
 
+            // שמירת בית קפה חדש ב-Firebase
             addVC.onSave = {
                 [weak self] cafe in
 
@@ -204,6 +220,7 @@ class CafeListViewController: UIViewController,
 
                 var newCafe = cafe
 
+                // בחירת תמונה אקראית לבית הקפה
                 newCafe.imageName =
                     self.randomAvailableImageName()
 
@@ -223,6 +240,7 @@ class CafeListViewController: UIViewController,
             }
         }
 
+
         // MARK: Cafe Details
 
         else if segue.identifier == "showDetails",
@@ -231,9 +249,13 @@ class CafeListViewController: UIViewController,
                         as? CafeDetailsViewController,
                 let cafe = sender as? Cafe {
 
+            // העברת בית הקפה שנבחר למסך הפרטים
             detailsVC.cafe = cafe
 
+
             // Delete
+
+            // מחיקת בית הקפה מ-Firebase
             detailsVC.onDelete = {
                 [weak self] in
 
@@ -254,7 +276,10 @@ class CafeListViewController: UIViewController,
                     }
             }
 
+
             // Edit
+
+            // עדכון בית הקפה לאחר עריכה
             detailsVC.onEdit = {
                 [weak self] editedCafe in
 
@@ -277,8 +302,10 @@ class CafeListViewController: UIViewController,
         }
     }
 
+
     // MARK: - Random Cafe Image
 
+    // בחירת תמונה שעדיין לא נמצאת בשימוש, אם אפשר
     private func randomAvailableImageName() -> String {
 
         let allImages = [
@@ -304,21 +331,22 @@ class CafeListViewController: UIViewController,
                 !usedImages.contains($0)
             }
 
-        // Use an unused image first
+        // קודם נשתמש בתמונה שעדיין לא נבחרה
         if let image =
             availableImages.randomElement() {
 
             return image
         }
 
-        // If all images are already used,
-        // allow random reuse
+        // אם כל התמונות בשימוש, נבחר תמונה אקראית
         return allImages.randomElement()
             ?? "defaultCafe"
     }
 
+
     // MARK: - Table View Data Source
 
+    // מספר בתי הקפה שיוצגו בטבלה
     func tableView(
         _ tableView: UITableView,
         numberOfRowsInSection section: Int
@@ -327,6 +355,7 @@ class CafeListViewController: UIViewController,
         return displayedCafes.count
     }
 
+    // הגדרת התוכן של כל תא ברשימה
     func tableView(
         _ tableView: UITableView,
         cellForRowAt indexPath: IndexPath
@@ -362,8 +391,10 @@ class CafeListViewController: UIViewController,
         return cell
     }
 
+
     // MARK: - Table View Delegate
 
+    // מעבר למסך הפרטים כאשר המשתמש בוחר בית קפה
     func tableView(
         _ tableView: UITableView,
         didSelectRowAt indexPath: IndexPath
@@ -391,8 +422,10 @@ class CafeListViewController: UIViewController,
         return 90
     }
 
+
     // MARK: - Helpers
 
+    // מחזיר את הרשימה המתאימה לפי מצב החיפוש
     private var displayedCafes: [Cafe] {
 
         return isSearching
@@ -400,6 +433,7 @@ class CafeListViewController: UIViewController,
             : cafes
     }
 
+    // יצירת תצוגת הכוכבים לפי הדירוג
     private func createStars(
         for rating: Int
     ) -> String {
@@ -417,11 +451,14 @@ class CafeListViewController: UIViewController,
         return stars
     }
 
+
     // MARK: - Appearance
-    // מצב לילה - המערכת קוראת לפונקציה כאשר מאפייני התצוגה משתנים
+
+    // הגדרת העיצוב הכללי של מסך הרשימה
     private func configureAppearance() {
 
         // Search Bar
+
         searchBar.backgroundImage =
             UIImage()
 
@@ -467,7 +504,9 @@ class CafeListViewController: UIViewController,
                     .secondaryText
         }
 
+
         // Background
+
         view.backgroundColor =
             CafeAppTheme.Colors.background
 
@@ -485,7 +524,9 @@ class CafeListViewController: UIViewController,
                 right: 0
             )
 
+
         // Empty State
+
         emptyStateLabel.text =
             "☕️ No cafes found"
 
@@ -503,7 +544,9 @@ class CafeListViewController: UIViewController,
                 weight: .semibold
             )
 
+
         // Navigation Bar
+
         navigationController?
             .navigationBar
             .prefersLargeTitles = false
@@ -514,8 +557,10 @@ class CafeListViewController: UIViewController,
         configureNavigationBar()
     }
 
+
     // MARK: - Navigation Bar
 
+    // התאמת העיצוב של סרגל הניווט
     private func configureNavigationBar() {
 
         let appearance =
@@ -563,8 +608,10 @@ class CafeListViewController: UIViewController,
                     .primary
     }
 
+
     // MARK: - Dark Mode
 
+    // זיהוי מעבר בין מצב בהיר למצב כהה
     override func traitCollectionDidChange(
         _ previousTraitCollection:
             UITraitCollection?
@@ -583,6 +630,7 @@ class CafeListViewController: UIViewController,
         }
     }
 
+    // עדכון הצבעים לאחר שינוי מצב התצוגה
     private func updateDynamicAppearance() {
 
         view.backgroundColor =
@@ -619,8 +667,10 @@ class CafeListViewController: UIViewController,
         tableView.reloadData()
     }
 
+
     // MARK: - Error
 
+    // הצגת הודעת שגיאה למשתמש
     private func showError(
         _ message: String
     ) {
@@ -645,8 +695,10 @@ class CafeListViewController: UIViewController,
         )
     }
 
+
     // MARK: - Cleanup
 
+    // הסרת המאזין של Firebase כאשר המסך משתחרר מהזיכרון
     deinit {
         cafesListener?.remove()
     }
