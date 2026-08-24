@@ -33,11 +33,12 @@ class CafeListViewController: UIViewController,
         tableView.delegate = self
         tableView.dataSource = self
         searchBar.delegate = self
-
+        
+        // design
         configureAppearance()
 
         emptyStateLabel.isHidden = true
-
+        //listening to firebase
         observeCafes()
     }
 
@@ -286,7 +287,9 @@ class CafeListViewController: UIViewController,
             "cafe3",
             "cafe4",
             "cafe5",
-            "cafe6"
+            "cafe6",
+            "cafe7",
+            "cafe8"
         ]
 
         let usedImages =
