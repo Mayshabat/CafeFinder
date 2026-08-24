@@ -415,7 +415,7 @@ class CafeListViewController: UIViewController,
     }
 
     // MARK: - Appearance
-
+    // מצב לילה - המערכת קוראת לפונקציה כאשר מאפייני התצוגה משתנים
     private func configureAppearance() {
 
         // Search Bar
