@@ -21,16 +21,22 @@ class CafeDetailsViewController: UIViewController {
     @IBOutlet weak var mapView: MKMapView!
     @IBOutlet weak var cafeImageView: UIImageView!
 
+
     // MARK: - Properties
 
+    // בית הקפה שמוצג במסך הפרטים
     var cafe: Cafe?
 
+    // פעולות מחיקה ועריכה שמועברות למסך הרשימה
     var onDelete: (() -> Void)?
     var onEdit: ((Cafe) -> Void)?
 
+    // מאזין למספר הצפיות ב-Realtime Database
     private var viewsHandle: DatabaseHandle?
 
+    // משמש להמרת כתובת למיקום במפה
     private let geocoder = CLGeocoder()
+
 
     // MARK: - Lifecycle
 
@@ -43,8 +49,10 @@ class CafeDetailsViewController: UIViewController {
         observeViews()
     }
 
+
     // MARK: - Display Cafe
 
+    // הצגת פרטי בית הקפה במסך
     private func displayCafeDetails() {
 
         guard let cafe = cafe else {
@@ -58,13 +66,16 @@ class CafeDetailsViewController: UIViewController {
 
         title = "Cafe Details"
 
+
         // Name
 
         nameLabel.text = cafe.name
 
+
         // City
 
         cityLabel.text = cafe.city
+
 
         // Address
 
@@ -78,12 +89,14 @@ class CafeDetailsViewController: UIViewController {
             ? "No address added"
             : cleanAddress
 
+
         // Rating
 
         ratingLabel.text =
             createStars(
                 for: cafe.rating
             )
+
 
         // Notes
 
@@ -97,15 +110,19 @@ class CafeDetailsViewController: UIViewController {
             ? "No notes added"
             : cleanNotes
 
+
         // Image
 
+        // הצגת התמונה של בית הקפה או תמונת ברירת מחדל
         cafeImageView.image =
             UIImage(named: cafe.imageName)
             ?? UIImage(named: "defaultCafe")
     }
 
+
     // MARK: - Rating
 
+    // יצירת הכוכבים לפי הדירוג של בית הקפה
     private func createStars(
         for rating: Int
     ) -> String {
@@ -123,19 +140,23 @@ class CafeDetailsViewController: UIViewController {
         return stars
     }
 
+
     // MARK: - Realtime Database
 
+    // עדכון והצגת מספר הצפיות בבית הקפה
     private func observeViews() {
 
         guard let cafe = cafe else {
             return
         }
 
+        // הגדלת מספר הצפיות בכל כניסה למסך
         CafeRealtimeService.shared
             .incrementViews(
                 for: cafe.id
             )
 
+        // האזנה לשינויים במספר הצפיות
         viewsHandle =
             CafeRealtimeService.shared
                 .observeViews(
@@ -150,8 +171,10 @@ class CafeDetailsViewController: UIViewController {
                 }
     }
 
+
     // MARK: - Navigation
 
+    // הכנת מסך העריכה והעברת בית הקפה אליו
     override func prepare(
         for segue: UIStoryboardSegue,
         sender: Any?
@@ -186,6 +209,7 @@ class CafeDetailsViewController: UIViewController {
         }
     }
 
+    // הגדרת מסך ההוספה למצב עריכה
     private func configureEditScreen(
         _ addVC: AddCafeViewController
     ) {
@@ -199,6 +223,7 @@ class CafeDetailsViewController: UIViewController {
                 return
             }
 
+            // עדכון הנתונים במסך לאחר העריכה
             self.cafe = editedCafe
 
             self.displayCafeDetails()
@@ -209,8 +234,10 @@ class CafeDetailsViewController: UIViewController {
         }
     }
 
+
     // MARK: - Delete
 
+    // הצגת אישור לפני מחיקת בית קפה
     @IBAction func deletePressed(
         _ sender: UIButton
     ) {
@@ -236,8 +263,10 @@ class CafeDetailsViewController: UIViewController {
                 style: .destructive
             ) { [weak self] _ in
 
+                // ביצוע המחיקה
                 self?.onDelete?()
 
+                // חזרה למסך הרשימה
                 self?
                     .navigationController?
                     .popViewController(
@@ -252,8 +281,10 @@ class CafeDetailsViewController: UIViewController {
         )
     }
 
+
     // MARK: - Map
 
+    // חיפוש הכתובת והצגת בית הקפה על המפה
     private func showCafeLocation() {
 
         guard let cafe = cafe else {
@@ -286,6 +317,7 @@ class CafeDetailsViewController: UIViewController {
                 "\(cleanAddress), \(cleanCity)"
         }
 
+        // אם אין כתובת, מסירים סימונים קיימים מהמפה
         guard !fullAddress.isEmpty else {
 
             mapView.removeAnnotations(
@@ -295,9 +327,10 @@ class CafeDetailsViewController: UIViewController {
             return
         }
 
-        // Cancel a previous geocoding request
+        // ביטול חיפוש כתובת קודם במידת הצורך
         geocoder.cancelGeocode()
 
+        // המרת הכתובת לקואורדינטות
         geocoder.geocodeAddressString(
             fullAddress
         ) { [weak self] placemarks, error in
@@ -308,7 +341,7 @@ class CafeDetailsViewController: UIViewController {
 
             if let error = error {
 
-                // Ignore cancellation errors
+                // התעלמות משגיאה שנגרמה מביטול חיפוש קודם
                 if (error as NSError).code !=
                     CLError.geocodeCanceled.rawValue {
 
@@ -335,14 +368,14 @@ class CafeDetailsViewController: UIViewController {
 
             DispatchQueue.main.async {
 
-                // Remove previous pin
-
+                // הסרת סימון קודם מהמפה
                 self.mapView
                     .removeAnnotations(
                         self.mapView.annotations
                     )
 
-                // Create new pin
+
+                // יצירת סימון חדש לבית הקפה
 
                 let annotation =
                     MKPointAnnotation()
@@ -360,7 +393,8 @@ class CafeDetailsViewController: UIViewController {
                     annotation
                 )
 
-                // Zoom to cafe
+
+                // התמקדות באזור של בית הקפה
 
                 let region =
                     MKCoordinateRegion(
@@ -382,14 +416,17 @@ class CafeDetailsViewController: UIViewController {
         }
     }
 
+
     // MARK: - Appearance
 
+    // הגדרת העיצוב הכללי של מסך הפרטים
     private func configureAppearance() {
 
         // Background
 
         view.backgroundColor =
             CafeAppTheme.Colors.background
+
 
         // Cafe Image
 
@@ -401,6 +438,7 @@ class CafeDetailsViewController: UIViewController {
 
         cafeImageView.layer.cornerRadius =
             CafeAppTheme.Metrics.fieldRadius
+
 
         // Name
 
@@ -415,6 +453,7 @@ class CafeDetailsViewController: UIViewController {
 
         nameLabel.numberOfLines = 0
 
+
         // City
 
         cityLabel.textColor =
@@ -427,6 +466,7 @@ class CafeDetailsViewController: UIViewController {
             )
 
         cityLabel.numberOfLines = 0
+
 
         // Address
 
@@ -441,6 +481,7 @@ class CafeDetailsViewController: UIViewController {
 
         addressLabel.numberOfLines = 0
 
+
         // Rating
 
         ratingLabel.textColor =
@@ -452,6 +493,7 @@ class CafeDetailsViewController: UIViewController {
                 weight: .semibold
             )
 
+
         // Views
 
         viewsLabel.textColor =
@@ -462,6 +504,7 @@ class CafeDetailsViewController: UIViewController {
                 ofSize: 14,
                 weight: .medium
             )
+
 
         // Notes
 
@@ -475,17 +518,21 @@ class CafeDetailsViewController: UIViewController {
         notesTextView.isSelectable =
             true
 
+
         // Map
 
         configureMapAppearance()
+
 
         // Navigation Bar
 
         configureNavigationBar()
     }
 
+
     // MARK: - Map Appearance
 
+    // עיצוב המפה בהתאם לעיצוב הכללי של האפליקציה
     private func configureMapAppearance() {
 
         mapView.layer.cornerRadius =
@@ -504,8 +551,10 @@ class CafeDetailsViewController: UIViewController {
             true
     }
 
+
     // MARK: - Navigation Bar
 
+    // התאמת העיצוב של סרגל הניווט
     private func configureNavigationBar() {
 
         let appearance =
@@ -553,8 +602,10 @@ class CafeDetailsViewController: UIViewController {
                     .primary
     }
 
+
     // MARK: - Dark Mode
 
+    // זיהוי מעבר בין מצב בהיר למצב כהה
     override func traitCollectionDidChange(
         _ previousTraitCollection:
             UITraitCollection?
@@ -573,6 +624,7 @@ class CafeDetailsViewController: UIViewController {
         }
     }
 
+    // עדכון צבעי המסך לאחר שינוי מצב התצוגה
     private func updateDynamicAppearance() {
 
         view.backgroundColor =
@@ -607,8 +659,10 @@ class CafeDetailsViewController: UIViewController {
         configureNavigationBar()
     }
 
+
     // MARK: - Error
 
+    // הצגת הודעת שגיאה למשתמש
     private func showError(
         _ message: String
     ) {
@@ -633,8 +687,10 @@ class CafeDetailsViewController: UIViewController {
         )
     }
 
+
     // MARK: - Cleanup
 
+    // הסרת המאזינים כאשר המסך משתחרר מהזיכרון
     deinit {
 
         geocoder.cancelGeocode()
