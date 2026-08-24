@@ -25,6 +25,7 @@ final class CafeFirestoreService {
 
     // MARK: - Observe Cafes
 
+    //קריאת נתונים 
     func observeCafes(
         completion: @escaping (Result<[Cafe], Error>) -> Void
     ) -> ListenerRegistration {
